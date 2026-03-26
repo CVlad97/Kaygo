@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/kaygo-admin/"
+title = "KAYGO Admin Dashboard"
+version = "1.0.0"
+id = "artifacts/kaygo-admin"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/kaygo-admin/" ]
+localPort = 21175
+
+[services.development]
+run = "pnpm --filter @workspace/kaygo-admin run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/kaygo-admin", "run", "build" ]
+publicDir = "artifacts/kaygo-admin/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21175"
+BASE_PATH = "/kaygo-admin/"

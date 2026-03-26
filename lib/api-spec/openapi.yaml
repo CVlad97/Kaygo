@@ -1,22 +1,41 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: KAYGO API - Plateforme de mise en relation logistique France-Martinique
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: trips
+    description: Traveler trips
+  - name: shipments
+    description: Package shipments
+  - name: matches
+    description: Trip-shipment matching
+  - name: payments
+    description: Payments
+  - name: proofs
+    description: Delivery proofs
+  - name: admin
+    description: Admin operations
+  - name: notifications
+    description: Notifications
+  - name: pricing
+    description: Price estimation
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +43,598 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── AUTH ───────────────────────────────────────────────────────────────────
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ─── USERS ──────────────────────────────────────────────────────────────────
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users (admin)
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: verificationStatus
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsersListResponse"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+
+  /users/{id}/verify:
+    post:
+      operationId: verifyUser
+      tags: [users]
+      summary: Admin verify/reject a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyRequest"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+
+  # ─── TRIPS ──────────────────────────────────────────────────────────────────
+
+  /trips:
+    get:
+      operationId: listTrips
+      tags: [trips]
+      summary: List trips
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: departureCity
+          in: query
+          schema:
+            type: string
+        - name: arrivalCity
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of trips
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripsListResponse"
+    post:
+      operationId: createTrip
+      tags: [trips]
+      summary: Create a new trip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTripRequest"
+      responses:
+        "201":
+          description: Trip created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripResponse"
+
+  /trips/{id}:
+    get:
+      operationId: getTrip
+      tags: [trips]
+      summary: Get a trip
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripResponse"
+    patch:
+      operationId: updateTrip
+      tags: [trips]
+      summary: Update trip status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTripRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripResponse"
+
+  /trips/traveler/{travelerId}:
+    get:
+      operationId: getTravelerTrips
+      tags: [trips]
+      summary: Get trips for a traveler
+      parameters:
+        - name: travelerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trips list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripsListResponse"
+
+  # ─── SHIPMENTS ──────────────────────────────────────────────────────────────
+
+  /shipments:
+    get:
+      operationId: listShipments
+      tags: [shipments]
+      summary: List shipments
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: senderId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Shipments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentsListResponse"
+    post:
+      operationId: createShipment
+      tags: [shipments]
+      summary: Create a new shipment request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShipmentRequest"
+      responses:
+        "201":
+          description: Shipment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentResponse"
+
+  /shipments/{id}:
+    get:
+      operationId: getShipment
+      tags: [shipments]
+      summary: Get a shipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Shipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentResponse"
+    patch:
+      operationId: updateShipment
+      tags: [shipments]
+      summary: Update a shipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateShipmentRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentResponse"
+
+  /shipments/{id}/sender/{senderId}:
+    get:
+      operationId: getSenderShipments
+      tags: [shipments]
+      summary: Get shipments for a sender
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: senderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Shipments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentsListResponse"
+
+  # ─── MATCHES ─────────────────────────────────────────────────────────────────
+
+  /matches:
+    get:
+      operationId: listMatches
+      tags: [matches]
+      summary: List matches
+      parameters:
+        - name: adminStatus
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matches
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchesListResponse"
+    post:
+      operationId: createMatch
+      tags: [matches]
+      summary: Create a match (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMatchRequest"
+      responses:
+        "201":
+          description: Match created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchResponse"
+
+  /matches/{id}:
+    get:
+      operationId: getMatch
+      tags: [matches]
+      summary: Get a match
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchResponse"
+    patch:
+      operationId: updateMatch
+      tags: [matches]
+      summary: Update match status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMatchRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchResponse"
+
+  # ─── PAYMENTS ────────────────────────────────────────────────────────────────
+
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List payments
+      responses:
+        "200":
+          description: Payments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentsListResponse"
+
+  /payments/{id}:
+    get:
+      operationId: getPayment
+      tags: [payments]
+      summary: Get payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+
+  # ─── PROOFS ──────────────────────────────────────────────────────────────────
+
+  /proofs:
+    post:
+      operationId: createProof
+      tags: [proofs]
+      summary: Submit a delivery proof
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProofRequest"
+      responses:
+        "201":
+          description: Proof submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProofResponse"
+
+  /proofs/shipment/{shipmentId}:
+    get:
+      operationId: getShipmentProofs
+      tags: [proofs]
+      summary: Get proofs for a shipment
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Proofs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProofsListResponse"
+
+  # ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+
+  /notifications/{userId}:
+    get:
+      operationId: getUserNotifications
+      tags: [notifications]
+      summary: Get user notifications
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsListResponse"
+
+  # ─── PRICING ─────────────────────────────────────────────────────────────────
+
+  /pricing/estimate:
+    post:
+      operationId: getPriceEstimate
+      tags: [pricing]
+      summary: Get price estimate for a shipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PriceEstimateRequest"
+      responses:
+        "200":
+          description: Price estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriceEstimateResponse"
+
+  # ─── ADMIN ────────────────────────────────────────────────────────────────────
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin dashboard statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStatsResponse"
+
+  /admin/actions:
+    post:
+      operationId: createAdminAction
+      tags: [admin]
+      summary: Log an admin action
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAdminActionRequest"
+      responses:
+        "201":
+          description: Action logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminActionResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +642,697 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required: [error]
+
+    # ── Auth ──────────────────────────────────────────────────────────────────
+
+    RegisterRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [traveler, sender, receiver, admin]
+      required: [firstName, lastName, email, password, role]
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required: [token, user]
+
+    # ── User ──────────────────────────────────────────────────────────────────
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        role:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        verificationStatus:
+          type: string
+        createdAt:
+          type: string
+      required: [id, role, firstName, lastName, email, verificationStatus, createdAt]
+
+    UserResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+      required: [user]
+
+    UsersListResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: integer
+      required: [users, total]
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+        verificationStatus:
+          type: string
+
+    VerifyRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [verified, rejected]
+        note:
+          type: string
+      required: [status]
+
+    # ── Trip ──────────────────────────────────────────────────────────────────
+
+    Trip:
+      type: object
+      properties:
+        id:
+          type: integer
+        travelerId:
+          type: integer
+        departureCity:
+          type: string
+        arrivalCity:
+          type: string
+        departureDate:
+          type: string
+        arrivalDate:
+          type: string
+        flightNumber:
+          type: string
+          nullable: true
+        transportType:
+          type: string
+        baggageTotalKg:
+          type: number
+        baggageUsedKg:
+          type: number
+        baggageFreeKg:
+          type: number
+        baggageType:
+          type: string
+        acceptsExtraBaggage:
+          type: boolean
+        acceptedCategories:
+          type: array
+          items:
+            type: string
+        minReward:
+          type: number
+        notes:
+          type: string
+          nullable: true
+        status:
+          type: string
+        createdAt:
+          type: string
+        travelerName:
+          type: string
+          nullable: true
+      required: [id, travelerId, departureCity, arrivalCity, departureDate, arrivalDate, baggageTotalKg, baggageUsedKg, baggageFreeKg, minReward, status, createdAt]
+
+    TripResponse:
+      type: object
+      properties:
+        trip:
+          $ref: "#/components/schemas/Trip"
+      required: [trip]
+
+    TripsListResponse:
+      type: object
+      properties:
+        trips:
+          type: array
+          items:
+            $ref: "#/components/schemas/Trip"
+        total:
+          type: integer
+      required: [trips, total]
+
+    CreateTripRequest:
+      type: object
+      properties:
+        travelerId:
+          type: integer
+        departureCity:
+          type: string
+        arrivalCity:
+          type: string
+        departureDate:
+          type: string
+        arrivalDate:
+          type: string
+        flightNumber:
+          type: string
+        transportType:
+          type: string
+        baggageTotalKg:
+          type: number
+        baggageUsedKg:
+          type: number
+        baggageFreeKg:
+          type: number
+        baggageType:
+          type: string
+        acceptsExtraBaggage:
+          type: boolean
+        acceptedCategories:
+          type: array
+          items:
+            type: string
+        minReward:
+          type: number
+        notes:
+          type: string
+      required: [travelerId, departureCity, arrivalCity, departureDate, arrivalDate, baggageTotalKg, baggageUsedKg, baggageFreeKg, minReward]
+
+    UpdateTripRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        baggageUsedKg:
+          type: number
+        baggageFreeKg:
+          type: number
+        notes:
+          type: string
+
+    # ── Shipment ──────────────────────────────────────────────────────────────
+
+    Shipment:
+      type: object
+      properties:
+        id:
+          type: integer
+        senderId:
+          type: integer
+        receiverName:
+          type: string
+        receiverPhone:
+          type: string
+        departureCity:
+          type: string
+        arrivalCity:
+          type: string
+        weightKg:
+          type: number
+        dimensions:
+          type: string
+          nullable: true
+        category:
+          type: string
+        description:
+          type: string
+          nullable: true
+        declaredValue:
+          type: number
+          nullable: true
+        photoUrls:
+          type: array
+          items:
+            type: string
+        urgencyLevel:
+          type: string
+        pickupOption:
+          type: boolean
+        deliveryOption:
+          type: boolean
+        pickupAddress:
+          type: string
+          nullable: true
+        deliveryAddress:
+          type: string
+          nullable: true
+        status:
+          type: string
+        createdAt:
+          type: string
+        senderName:
+          type: string
+          nullable: true
+      required: [id, senderId, receiverName, receiverPhone, departureCity, arrivalCity, weightKg, category, status, createdAt]
+
+    ShipmentResponse:
+      type: object
+      properties:
+        shipment:
+          $ref: "#/components/schemas/Shipment"
+      required: [shipment]
+
+    ShipmentsListResponse:
+      type: object
+      properties:
+        shipments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Shipment"
+        total:
+          type: integer
+      required: [shipments, total]
+
+    CreateShipmentRequest:
+      type: object
+      properties:
+        senderId:
+          type: integer
+        receiverName:
+          type: string
+        receiverPhone:
+          type: string
+        departureCity:
+          type: string
+        arrivalCity:
+          type: string
+        weightKg:
+          type: number
+        dimensions:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        declaredValue:
+          type: number
+        photoUrls:
+          type: array
+          items:
+            type: string
+        urgencyLevel:
+          type: string
+        pickupOption:
+          type: boolean
+        deliveryOption:
+          type: boolean
+        pickupAddress:
+          type: string
+        deliveryAddress:
+          type: string
+      required: [senderId, receiverName, receiverPhone, departureCity, arrivalCity, weightKg, category]
+
+    UpdateShipmentRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        photoUrls:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+
+    # ── Match ─────────────────────────────────────────────────────────────────
+
+    Match:
+      type: object
+      properties:
+        id:
+          type: integer
+        shipmentId:
+          type: integer
+        tripId:
+          type: integer
+        proposedReward:
+          type: number
+        platformFee:
+          type: number
+        serviceFee:
+          type: number
+        pickupFee:
+          type: number
+        deliveryFee:
+          type: number
+        totalPrice:
+          type: number
+        adminStatus:
+          type: string
+        travelerStatus:
+          type: string
+        senderStatus:
+          type: string
+        createdAt:
+          type: string
+        shipment:
+          $ref: "#/components/schemas/Shipment"
+          nullable: true
+        trip:
+          $ref: "#/components/schemas/Trip"
+          nullable: true
+      required: [id, shipmentId, tripId, proposedReward, platformFee, serviceFee, pickupFee, deliveryFee, totalPrice, adminStatus, travelerStatus, senderStatus, createdAt]
+
+    MatchResponse:
+      type: object
+      properties:
+        match:
+          $ref: "#/components/schemas/Match"
+      required: [match]
+
+    MatchesListResponse:
+      type: object
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/Match"
+        total:
+          type: integer
+      required: [matches, total]
+
+    CreateMatchRequest:
+      type: object
+      properties:
+        shipmentId:
+          type: integer
+        tripId:
+          type: integer
+        proposedReward:
+          type: number
+        platformFee:
+          type: number
+        serviceFee:
+          type: number
+        pickupFee:
+          type: number
+        deliveryFee:
+          type: number
+        totalPrice:
+          type: number
+      required: [shipmentId, tripId, proposedReward, platformFee, serviceFee, pickupFee, deliveryFee, totalPrice]
+
+    UpdateMatchRequest:
+      type: object
+      properties:
+        adminStatus:
+          type: string
+        travelerStatus:
+          type: string
+        senderStatus:
+          type: string
+
+    # ── Payment ───────────────────────────────────────────────────────────────
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+        shipmentId:
+          type: integer
+        payerId:
+          type: integer
+        amount:
+          type: number
+        paymentStatus:
+          type: string
+        payoutStatus:
+          type: string
+        stripePaymentIntentId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, shipmentId, payerId, amount, paymentStatus, payoutStatus, createdAt]
+
+    PaymentResponse:
+      type: object
+      properties:
+        payment:
+          $ref: "#/components/schemas/Payment"
+      required: [payment]
+
+    PaymentsListResponse:
+      type: object
+      properties:
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Payment"
+        total:
+          type: integer
+      required: [payments, total]
+
+    # ── Proof ─────────────────────────────────────────────────────────────────
+
+    Proof:
+      type: object
+      properties:
+        id:
+          type: integer
+        shipmentId:
+          type: integer
+        proofType:
+          type: string
+        photoUrl:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        deliveryCode:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, shipmentId, proofType, createdAt]
+
+    ProofResponse:
+      type: object
+      properties:
+        proof:
+          $ref: "#/components/schemas/Proof"
+      required: [proof]
+
+    ProofsListResponse:
+      type: object
+      properties:
+        proofs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Proof"
+      required: [proofs]
+
+    CreateProofRequest:
+      type: object
+      properties:
+        shipmentId:
+          type: integer
+        proofType:
+          type: string
+        photoUrl:
+          type: string
+        note:
+          type: string
+        deliveryCode:
+          type: string
+      required: [shipmentId, proofType]
+
+    # ── Notification ──────────────────────────────────────────────────────────
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+      required: [id, userId, type, title, message, status, createdAt]
+
+    NotificationsListResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+      required: [notifications]
+
+    # ── Pricing ───────────────────────────────────────────────────────────────
+
+    PriceEstimateRequest:
+      type: object
+      properties:
+        weightKg:
+          type: number
+        pickupOption:
+          type: boolean
+        deliveryOption:
+          type: boolean
+        urgencyLevel:
+          type: string
+        serviceLevel:
+          type: string
+          enum: [eco, confort, premium]
+      required: [weightKg, serviceLevel]
+
+    PriceEstimateResponse:
+      type: object
+      properties:
+        transportFee:
+          type: number
+        serviceFee:
+          type: number
+        pickupFee:
+          type: number
+        deliveryFee:
+          type: number
+        totalPrice:
+          type: number
+        serviceLevel:
+          type: string
+        estimatedDays:
+          type: integer
+        breakdown:
+          type: object
+          properties:
+            label:
+              type: string
+            amount:
+              type: number
+          additionalProperties: true
+      required: [transportFee, serviceFee, pickupFee, deliveryFee, totalPrice, serviceLevel, estimatedDays]
+
+    # ── Admin ─────────────────────────────────────────────────────────────────
+
+    AdminStatsResponse:
+      type: object
+      properties:
+        totalTrips:
+          type: integer
+        totalShipments:
+          type: integer
+        validatedMatches:
+          type: integer
+        platformRevenue:
+          type: number
+        travelerGains:
+          type: number
+        collectionsToday:
+          type: integer
+        deliveriesToday:
+          type: integer
+        openDisputes:
+          type: integer
+        pendingValidations:
+          type: integer
+        recentActivity:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              message:
+                type: string
+              time:
+                type: string
+            required: [type, message, time]
+      required: [totalTrips, totalShipments, validatedMatches, platformRevenue, travelerGains, collectionsToday, deliveriesToday, openDisputes, pendingValidations, recentActivity]
+
+    CreateAdminActionRequest:
+      type: object
+      properties:
+        adminId:
+          type: integer
+        targetType:
+          type: string
+        targetId:
+          type: integer
+        action:
+          type: string
+        note:
+          type: string
+      required: [adminId, targetType, targetId, action]
+
+    AdminActionResponse:
+      type: object
+      properties:
+        action:
+          type: object
+          properties:
+            id:
+              type: integer
+            adminId:
+              type: integer
+            targetType:
+              type: string
+            targetId:
+              type: integer
+            action:
+              type: string
+            note:
+              type: string
+              nullable: true
+            createdAt:
+              type: string
+          required: [id, adminId, targetType, targetId, action, createdAt]
+      required: [action]

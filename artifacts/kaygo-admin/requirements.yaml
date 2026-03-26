@@ -1,0 +1,15 @@
+packages:
+  "recharts": "Analytics charts for the admin dashboard"
+  "date-fns": "Date formatting and manipulation"
+  "framer-motion": "UI animations and page transitions"
+  "clsx": "Class merging utility"
+  "tailwind-merge": "Class merging utility"
+
+images:
+  - path: "artifacts/kaygo-admin/public/images/logo.png"
+    description: "Modern minimalist logo mark for KAYGO logistics app, simple package and arrow, deep navy and turquoise, transparent background"
+    aspect_ratio: "1:1"
+
+notes:
+  - Uses @workspace/api-client-react for data fetching (already set up in monorepo)
+  - French language UI as requested
