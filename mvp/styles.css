@@ -1,0 +1,40 @@
+:root {
+  --bg: #f6f7fb;
+  --text: #111;
+  --muted: #6b6b6b;
+  --brand: #0f2044;
+  --accent: #00c4cc;
+  --card: #fff;
+  --border: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); }
+.container { width: min(1100px, 92%); margin: 0 auto; }
+.topbar { background:#fff; border-bottom:1px solid var(--border); }
+.topbar-inner { display:flex; justify-content: space-between; align-items:center; padding: 12px 0; gap: 12px; flex-wrap: wrap; }
+.brand { display:flex; gap:12px; align-items:center; }
+.logo { width:40px; height:40px; background: var(--brand); color:#fff; display:grid; place-items:center; border-radius:10px; font-weight:800; }
+.brand-name { font-weight:800; letter-spacing:1px; }
+.brand-tag { color: var(--muted); font-size:12px; }
+.btn { padding:10px 14px; border-radius:10px; text-decoration:none; font-weight:700; border:1px solid var(--border); display:inline-block; }
+.btn-primary { background: var(--brand); color:#fff; border-color: var(--brand); }
+.btn-outline { background:#fff; color: var(--brand); }
+.hero { padding: 32px 0; }
+.hero-grid { display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; align-items:center; }
+.hero-ctas { display:flex; gap:10px; margin: 12px 0; }
+.hero-badges span { background:#fff; border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-size:12px; margin-right:6px; }
+.hero-card { background: var(--card); border:1px solid var(--border); border-radius:14px; padding: 16px; }
+.section { padding: 28px 0; }
+.grid { display:grid; gap: 12px; }
+.cards-3 { grid-template-columns: repeat(3, 1fr); }
+.card { background: var(--card); border:1px solid var(--border); border-radius:12px; padding: 14px; }
+.form { background:#fff; border:1px solid var(--border); border-radius:14px; padding: 16px; display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { display:flex; flex-direction:column; gap:6px; }
+.field.full { grid-column: span 2; }
+input, textarea { padding:10px; border:1px solid var(--border); border-radius:8px; }
+textarea { min-height: 90px; }
+.form-cta { grid-column: span 2; display:flex; gap:10px; align-items:center; }
+.bullets { color: var(--muted); }
+.footer { background:#fff; border-top:1px solid var(--border); padding: 16px 0; color: var(--muted); }
+.muted { color: var(--muted); font-size: 12px; }
+@media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } .cards-3, .form { grid-template-columns: 1fr; } .field.full { grid-column: span 1; } }
