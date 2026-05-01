@@ -24,8 +24,8 @@ export default function Users() {
   };
 
   const users = data?.users || [];
-  const filteredUsers = users.filter(u => 
-    u.firstName.toLowerCase().includes(filter.toLowerCase()) || 
+  const filteredUsers = users.filter((u: any) =>
+    u.firstName.toLowerCase().includes(filter.toLowerCase()) ||
     u.lastName.toLowerCase().includes(filter.toLowerCase()) ||
     u.email.toLowerCase().includes(filter.toLowerCase())
   );
@@ -72,7 +72,7 @@ export default function Users() {
                   <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">Aucun utilisateur trouvé.</td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                filteredUsers.map((user: any) => (
                   <tr key={user.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">

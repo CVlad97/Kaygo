@@ -9,8 +9,8 @@ export default function Trips() {
   const { data, isLoading } = useListTrips();
 
   const trips = data?.trips || [];
-  const filteredTrips = trips.filter(t => 
-    t.departureCity.toLowerCase().includes(filter.toLowerCase()) || 
+  const filteredTrips = trips.filter((t: any) =>
+    t.departureCity.toLowerCase().includes(filter.toLowerCase()) ||
     t.arrivalCity.toLowerCase().includes(filter.toLowerCase())
   );
 
@@ -61,7 +61,7 @@ export default function Trips() {
                   <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">Aucun trajet trouvé.</td>
                 </tr>
               ) : (
-                filteredTrips.map((trip) => {
+                filteredTrips.map((trip: any) => {
                   const percentUsed = (trip.baggageUsedKg / trip.baggageTotalKg) * 100;
                   
                   return (

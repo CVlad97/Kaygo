@@ -37,7 +37,7 @@ export default function Payments() {
                   <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">Aucun paiement trouvé.</td>
                 </tr>
               ) : (
-                payments.map((payment) => (
+                payments.map((payment: any) => (
                   <tr key={payment.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">

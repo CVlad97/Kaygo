@@ -94,7 +94,7 @@ export default function CreateShipmentScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Envoyer un colis</Text>
         <TouchableOpacity onPress={() => router.push("/shipment/estimate")} style={styles.estimateBtn}>
-          <Feather name="calculator" size={16} color={KAYGO_COLORS.accent} />
+          <Feather name="hash" size={16} color={KAYGO_COLORS.accent} />
           <Text style={styles.estimateBtnText}>Estimer</Text>
         </TouchableOpacity>
       </View>

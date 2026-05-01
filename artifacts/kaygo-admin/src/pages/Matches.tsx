@@ -36,7 +36,7 @@ export default function Matches() {
     
     // In a real app, you'd open a modal here to calculate exact fees.
     // For this admin panel, we'll auto-calculate basic demo values.
-    const shipment = shipments.find(s => s.id === selectedShipment);
+    const shipment = shipments.find((s: any) => s.id === selectedShipment);
     
     let baseReward = 15;
     let basePlatformFee = 5;
@@ -86,7 +86,7 @@ export default function Matches() {
                 Aucun colis en attente de match.
               </div>
             ) : (
-              shipments.map(s => (
+              shipments.map((s: any) => (
                 <div 
                   key={s.id}
                   onClick={() => setSelectedShipment(s.id)}
@@ -134,7 +134,7 @@ export default function Matches() {
                 Aucun trajet disponible.
               </div>
             ) : (
-              trips.map(t => (
+              trips.map((t: any) => (
                 <div 
                   key={t.id}
                   onClick={() => setSelectedTrip(t.id)}

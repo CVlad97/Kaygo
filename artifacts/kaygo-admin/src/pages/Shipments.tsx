@@ -9,8 +9,8 @@ export default function Shipments() {
   const { data, isLoading } = useListShipments();
 
   const shipments = data?.shipments || [];
-  const filteredShipments = shipments.filter(s => 
-    s.departureCity.toLowerCase().includes(filter.toLowerCase()) || 
+  const filteredShipments = shipments.filter((s: any) =>
+    s.departureCity.toLowerCase().includes(filter.toLowerCase()) ||
     s.arrivalCity.toLowerCase().includes(filter.toLowerCase()) ||
     s.category.toLowerCase().includes(filter.toLowerCase())
   );
@@ -57,7 +57,7 @@ export default function Shipments() {
                   <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">Aucun colis trouvé.</td>
                 </tr>
               ) : (
-                filteredShipments.map((shipment) => (
+                filteredShipments.map((shipment: any) => (
                   <tr key={shipment.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 font-medium">

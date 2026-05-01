@@ -22,7 +22,7 @@ const HOW_IT_WORKS = [
 ];
 
 const ALLOWED_ITEMS = [
-  { icon: "shirt" as const, label: "Vêtements", allowed: true },
+  { icon: "package" as const, label: "Vêtements", allowed: true },
   { icon: "file-text" as const, label: "Documents", allowed: true },
   { icon: "gift" as const, label: "Petits objets", allowed: true },
   { icon: "alert-triangle" as const, label: "Médicaments", allowed: false },

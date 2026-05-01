@@ -58,7 +58,7 @@ export default function Dashboard() {
         <div className="bg-card rounded-2xl border border-border/50 shadow-lg shadow-black/5 p-6">
           <h3 className="text-lg font-bold mb-4 font-display">Activité Récente</h3>
           <div className="space-y-4">
-            {stats?.recentActivity?.map((activity, i) => (
+            {stats?.recentActivity?.map((activity: any, i: number) => (
               <div key={i} className="flex items-center gap-4 py-3 border-b border-border/50 last:border-0">
                 <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center text-accent">
                   <Clock className="h-5 w-5" />
