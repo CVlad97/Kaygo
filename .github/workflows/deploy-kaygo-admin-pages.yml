@@ -22,6 +22,7 @@ jobs:
       PORT: 4173
       BASE_PATH: /Kaygo/
       VITE_API_BASE_URL: ${{ vars.KAYGO_API_BASE_URL || secrets.KAYGO_API_BASE_URL }}
+      VITE_WHATSAPP_URL: ${{ vars.KAYGO_WHATSAPP_URL || secrets.KAYGO_WHATSAPP_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,7 +46,24 @@ jobs:
         run: pnpm --filter @workspace/kaygo-admin run build
 
       - name: Add SPA fallback
-        run: cp artifacts/kaygo-admin/dist/public/index.html artifacts/kaygo-admin/dist/public/404.html
+        run: |
+          cp artifacts/kaygo-admin/dist/public/index.html artifacts/kaygo-admin/dist/public/404.html
+          for route in \
+            admin \
+            admin/utilisateurs \
+            admin/trajets \
+            admin/colis \
+            admin/matching \
+            admin/paiements \
+            admin/litiges \
+            admin/parametres \
+            estimer \
+            objets-autorises \
+            faq \
+            contact; do
+            mkdir -p "artifacts/kaygo-admin/dist/public/$route"
+            cp artifacts/kaygo-admin/dist/public/index.html "artifacts/kaygo-admin/dist/public/$route/index.html"
+          done
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
