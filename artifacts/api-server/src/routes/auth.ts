@@ -4,9 +4,9 @@ import { users } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { JWT_SECRET, serializeUser } from "../lib/auth";
 
 const router: IRouter = Router();
-const JWT_SECRET = process.env.JWT_SECRET ?? "kaygo-dev-secret-2024";
 
 router.post("/register", async (req, res) => {
   try {
@@ -22,8 +22,7 @@ router.post("/register", async (req, res) => {
       verificationStatus: "pending",
     }).returning();
     const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "30d" });
-    const { passwordHash: _, ...safeUser } = user;
-    return res.status(201).json({ token, user: safeUser });
+    return res.status(201).json({ token, user: serializeUser(user) });
   } catch (err) {
     req.log.error({ err }, "Register error");
     return res.status(500).json({ error: "INTERNAL_ERROR" });
@@ -42,8 +41,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "INVALID_CREDENTIALS", message: "Invalid email or password" });
     }
     const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "30d" });
-    const { passwordHash: _, ...safeUser } = user;
-    return res.json({ token, user: safeUser });
+    return res.json({ token, user: serializeUser(user) });
   } catch (err) {
     req.log.error({ err }, "Login error");
     return res.status(500).json({ error: "INTERNAL_ERROR" });

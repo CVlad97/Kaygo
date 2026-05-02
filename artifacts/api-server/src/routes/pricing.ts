@@ -56,7 +56,19 @@ function calculatePrice(params: PriceEstimateRequest) {
 
 router.post("/estimate", (req, res) => {
   try {
-    const result = calculatePrice(req.body as PriceEstimateRequest);
+    const body = req.body as Partial<PriceEstimateRequest>;
+    const weightKg = Number(body.weightKg);
+    if (!Number.isFinite(weightKg) || weightKg <= 0 || weightKg > 30) {
+      return res.status(400).json({ error: "INVALID_WEIGHT", message: "weightKg must be between 0 and 30." });
+    }
+    const serviceLevel = body.serviceLevel === "confort" || body.serviceLevel === "premium" ? body.serviceLevel : "eco";
+    const result = calculatePrice({
+      weightKg,
+      pickupOption: Boolean(body.pickupOption),
+      deliveryOption: Boolean(body.deliveryOption),
+      urgencyLevel: body.urgencyLevel === "urgent" ? "urgent" : "normal",
+      serviceLevel,
+    });
     return res.json(result);
   } catch (err) {
     req.log.error({ err }, "Pricing estimate error");

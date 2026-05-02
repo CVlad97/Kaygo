@@ -2,8 +2,10 @@ import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { payments } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
+import { requireAdmin, requireAuth } from "../lib/auth";
 
 const router: IRouter = Router();
+router.use(requireAuth, requireAdmin);
 
 router.get("/", async (req, res) => {
   try {
