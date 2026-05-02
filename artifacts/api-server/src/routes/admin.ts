@@ -1,9 +1,11 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { users, trips, shipments, matches, payments, adminActions } from "@workspace/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { trips, shipments, matches, payments, adminActions } from "@workspace/db/schema";
+import { sql } from "drizzle-orm";
+import { requireAdmin, requireAuth, type AuthedRequest } from "../lib/auth";
 
 const router: IRouter = Router();
+router.use(requireAuth, requireAdmin);
 
 router.get("/stats", async (req, res) => {
   try {
@@ -27,13 +29,14 @@ router.get("/stats", async (req, res) => {
     const openDisputes = allShipments.filter(s => s.status === "dispute").length;
     const pendingValidations = allShipments.filter(s => s.status === "submitted" || s.status === "validating").length;
     
-    const recentActivity = [
-      { type: "match", message: "Nouveau match proposé: Paris → Fort-de-France", time: "Il y a 5 min" },
-      { type: "payment", message: "Paiement reçu - Mission #42 (34€)", time: "Il y a 12 min" },
-      { type: "user", message: "Nouveau voyageur inscrit: Marie D.", time: "Il y a 25 min" },
-      { type: "delivery", message: "Livraison confirmée - Mission #38", time: "Il y a 1h" },
-      { type: "shipment", message: "Nouveau colis soumis: 2kg - Vêtements", time: "Il y a 1h 30min" },
-    ];
+    const recentShipments = allShipments
+      .slice(-5)
+      .reverse()
+      .map((shipment) => ({
+        type: "shipment",
+        message: `Colis #${shipment.id} - ${shipment.departureCity} → ${shipment.arrivalCity} - statut ${shipment.status}`,
+        time: shipment.createdAt instanceof Date ? shipment.createdAt.toISOString() : String(shipment.createdAt),
+      }));
     
     return res.json({
       totalTrips: totalTripsResult?.count ?? 0,
@@ -45,7 +48,7 @@ router.get("/stats", async (req, res) => {
       deliveriesToday,
       openDisputes,
       pendingValidations,
-      recentActivity,
+      recentActivity: recentShipments,
     });
   } catch (err) {
     req.log.error({ err }, "Admin stats error");
@@ -53,10 +56,10 @@ router.get("/stats", async (req, res) => {
   }
 });
 
-router.post("/actions", async (req, res) => {
+router.post("/actions", async (req: AuthedRequest, res) => {
   try {
     const data = req.body;
-    const [action] = await db.insert(adminActions).values(data).returning();
+    const [action] = await db.insert(adminActions).values({ ...data, adminId: req.currentUser!.id }).returning();
     return res.status(201).json({ action });
   } catch (err) {
     req.log.error({ err }, "Admin action error");
