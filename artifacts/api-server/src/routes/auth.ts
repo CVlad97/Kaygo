@@ -10,14 +10,18 @@ const router: IRouter = Router();
 
 router.post("/register", async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, role } = req.body;
+    const { firstName, lastName, email, password, phone } = req.body;
     const existing = await db.select().from(users).where(eq(users.email, email));
     if (existing.length > 0) {
       return res.status(400).json({ error: "EMAIL_EXISTS", message: "Email already registered" });
     }
     const passwordHash = await bcrypt.hash(password, 10);
     const [user] = await db.insert(users).values({
-      firstName, lastName, email, phone, role: role ?? "sender",
+      firstName,
+      lastName,
+      email,
+      phone,
+      role: "sender",
       passwordHash,
       verificationStatus: "pending",
     }).returning();
