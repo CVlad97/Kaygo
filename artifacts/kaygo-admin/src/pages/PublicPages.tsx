@@ -30,7 +30,8 @@ type PriceEstimateResponse = {
   estimatedDays: number;
 };
 
-const whatsappUrl = import.meta.env.VITE_WHATSAPP_URL?.trim() || "";
+const DEFAULT_WHATSAPP_URL = "https://wa.me/596696653589";
+const whatsappUrl = import.meta.env.VITE_WHATSAPP_URL?.trim() || DEFAULT_WHATSAPP_URL;
 
 function publicLink(path: string) {
   return path;
@@ -424,11 +425,9 @@ export function ContactPage() {
         </div>
         <div className="mx-auto mt-8 max-w-5xl rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-900/5">
           <WhatsappButton label="Contacter KAYGO" />
-          {!whatsappUrl && (
-            <p className="mt-4 text-sm font-bold text-amber-700">
-              Variable `VITE_WHATSAPP_URL` non renseignée : aucun faux numéro n’est affiché.
-            </p>
-          )}
+          <p className="mt-4 text-sm font-bold text-slate-500">
+            WhatsApp business pilote : +596 696 65 35 89.
+          </p>
         </div>
       </section>
     </PublicShell>

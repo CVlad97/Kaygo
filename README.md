@@ -35,17 +35,17 @@ Variables utilisées par le front local :
 PORT=4173
 BASE_PATH=/Kaygo/
 VITE_API_BASE_URL=https://api.example.com
-VITE_WHATSAPP_URL=https://wa.me/...
+VITE_WHATSAPP_URL=https://wa.me/596696653589
 ```
 
 Variables recommandées côté GitHub Actions :
 
 ```bash
 KAYGO_API_BASE_URL=https://api.example.com
-KAYGO_WHATSAPP_URL=https://wa.me/...
+KAYGO_WHATSAPP_URL=https://wa.me/596696653589
 ```
 
-`KAYGO_WHATSAPP_URL` / `VITE_WHATSAPP_URL` est optionnelle. Si elle est absente, le site n'affiche pas de faux numéro et renvoie vers `/contact`.
+`KAYGO_WHATSAPP_URL` / `VITE_WHATSAPP_URL` est optionnelle. Si elle est absente, le front utilise le WhatsApp business pilote validé : `https://wa.me/596696653589`.
 
 ## Sécurité
 
@@ -83,7 +83,7 @@ Le workflow `.github/workflows/deploy-kaygo-admin-pages.yml` :
 Variables GitHub recommandées :
 
 - `KAYGO_API_BASE_URL` dans Repository Variables ou Secrets
-- `KAYGO_WHATSAPP_URL` si le canal WhatsApp officiel est validé
+- `KAYGO_WHATSAPP_URL=https://wa.me/596696653589` pour le canal WhatsApp business pilote
 
 ## Vérification post-déploiement
 
