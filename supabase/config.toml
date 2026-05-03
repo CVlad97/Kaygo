@@ -1,0 +1,4 @@
+project_id = "kaygo-project-ref-to-configure"
+
+[functions.kaygo-api]
+verify_jwt = false
