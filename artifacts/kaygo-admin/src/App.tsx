@@ -1,4 +1,5 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { useEffect } from "react";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -38,60 +39,76 @@ function ComingSoon({ title }: { title: string }) {
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={PublicLandingPage} />
-      <Route path="/estimer" component={EstimatePage} />
-      <Route path="/objets-autorises" component={AllowedItemsPage} />
-      <Route path="/faq" component={FaqPage} />
-      <Route path="/contact" component={ContactPage} />
-      <Route path="/legal/cgu" component={LegalCguPage} />
-      <Route path="/legal/confidentialite" component={LegalPrivacyPage} />
-      <Route path="/legal/objets-interdits" component={LegalProhibitedItemsPage} />
-      <Route path="/legal/douane-martinique" component={LegalCustomsPage} />
-      <Route path="/admin/login" component={AdminLogin} />
-      <Route path="/admin">
-        <AdminLayout>
-          <Dashboard />
-        </AdminLayout>
-      </Route>
-      <Route path="/admin/utilisateurs">
-        <AdminLayout>
-          <Users />
-        </AdminLayout>
-      </Route>
-      <Route path="/admin/trajets">
-        <AdminLayout>
-          <Trips />
-        </AdminLayout>
-      </Route>
-      <Route path="/admin/colis">
-        <AdminLayout>
-          <Shipments />
-        </AdminLayout>
-      </Route>
-      <Route path="/admin/matching">
-        <AdminLayout>
-          <Matches />
-        </AdminLayout>
-      </Route>
-      <Route path="/admin/paiements">
-        <AdminLayout>
-          <Payments />
-        </AdminLayout>
-      </Route>
-      <Route path="/admin/litiges">
-        <AdminLayout>
-          <ComingSoon title="Gestion des litiges" />
-        </AdminLayout>
-      </Route>
-      <Route path="/admin/parametres">
-        <AdminLayout>
-          <ComingSoon title="Paramètres système" />
-        </AdminLayout>
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
+    <>
+      <QueryRouteNormalizer />
+      <Switch>
+        <Route path="/" component={PublicLandingPage} />
+        <Route path="/estimer" component={EstimatePage} />
+        <Route path="/objets-autorises" component={AllowedItemsPage} />
+        <Route path="/faq" component={FaqPage} />
+        <Route path="/contact" component={ContactPage} />
+        <Route path="/legal/cgu" component={LegalCguPage} />
+        <Route path="/legal/confidentialite" component={LegalPrivacyPage} />
+        <Route path="/legal/objets-interdits" component={LegalProhibitedItemsPage} />
+        <Route path="/legal/douane-martinique" component={LegalCustomsPage} />
+        <Route path="/admin/login" component={AdminLogin} />
+        <Route path="/admin">
+          <AdminLayout>
+            <Dashboard />
+          </AdminLayout>
+        </Route>
+        <Route path="/admin/utilisateurs">
+          <AdminLayout>
+            <Users />
+          </AdminLayout>
+        </Route>
+        <Route path="/admin/trajets">
+          <AdminLayout>
+            <Trips />
+          </AdminLayout>
+        </Route>
+        <Route path="/admin/colis">
+          <AdminLayout>
+            <Shipments />
+          </AdminLayout>
+        </Route>
+        <Route path="/admin/matching">
+          <AdminLayout>
+            <Matches />
+          </AdminLayout>
+        </Route>
+        <Route path="/admin/paiements">
+          <AdminLayout>
+            <Payments />
+          </AdminLayout>
+        </Route>
+        <Route path="/admin/litiges">
+          <AdminLayout>
+            <ComingSoon title="Gestion des litiges" />
+          </AdminLayout>
+        </Route>
+        <Route path="/admin/parametres">
+          <AdminLayout>
+            <ComingSoon title="Paramètres système" />
+          </AdminLayout>
+        </Route>
+        <Route component={NotFound} />
+      </Switch>
+    </>
   );
+}
+
+function QueryRouteNormalizer() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    const route = new URLSearchParams(window.location.search).get("route");
+    if (route?.startsWith("/")) {
+      setLocation(route, { replace: true });
+    }
+  }, [setLocation]);
+
+  return null;
 }
 
 function App() {
