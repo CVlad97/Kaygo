@@ -11,11 +11,16 @@ import Shipments from "@/pages/Shipments";
 import Matches from "@/pages/Matches";
 import Payments from "@/pages/Payments";
 import NotFound from "@/pages/not-found";
+import AdminLogin from "@/pages/AdminLogin";
 import {
   AllowedItemsPage,
   ContactPage,
   EstimatePage,
   FaqPage,
+  LegalCguPage,
+  LegalCustomsPage,
+  LegalPrivacyPage,
+  LegalProhibitedItemsPage,
   PublicLandingPage,
 } from "@/pages/PublicPages";
 
@@ -39,6 +44,11 @@ function Router() {
       <Route path="/objets-autorises" component={AllowedItemsPage} />
       <Route path="/faq" component={FaqPage} />
       <Route path="/contact" component={ContactPage} />
+      <Route path="/legal/cgu" component={LegalCguPage} />
+      <Route path="/legal/confidentialite" component={LegalPrivacyPage} />
+      <Route path="/legal/objets-interdits" component={LegalProhibitedItemsPage} />
+      <Route path="/legal/douane-martinique" component={LegalCustomsPage} />
+      <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin">
         <AdminLayout>
           <Dashboard />

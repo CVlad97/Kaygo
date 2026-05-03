@@ -1,12 +1,20 @@
 import { ReactNode } from "react";
+import { Redirect } from "wouter";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { getStoredAuthUser } from "@/lib/session";
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  const user = getStoredAuthUser();
+
+  if (!user || user.role !== "admin") {
+    return <Redirect to="/admin/login" />;
+  }
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />

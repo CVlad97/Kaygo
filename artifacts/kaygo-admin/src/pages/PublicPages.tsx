@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import type { ReactNode } from "react";
+import { FormEvent, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -18,6 +18,17 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import { apiJson, hasApiBaseUrl } from "@/lib/api";
+
+type PriceEstimateResponse = {
+  transportFee: number;
+  serviceFee: number;
+  pickupFee: number;
+  deliveryFee: number;
+  totalPrice: number;
+  serviceLevel: string;
+  estimatedDays: number;
+};
 
 const whatsappUrl = import.meta.env.VITE_WHATSAPP_URL?.trim() || "";
 
@@ -65,6 +76,7 @@ function PublicShell({ children }: { children: ReactNode }) {
             <Link href="/estimer">Estimer</Link>
             <Link href="/objets-autorises">Objets autorisés</Link>
             <Link href="/faq">FAQ</Link>
+            <Link href="/legal/douane-martinique">Douane</Link>
             <Link href="/contact">Contact</Link>
           </nav>
           <div className="flex items-center gap-2">
@@ -89,6 +101,9 @@ function PublicShell({ children }: { children: ReactNode }) {
             <Link href="/estimer">Estimer un envoi</Link>
             <Link href="/objets-autorises">Objets autorisés</Link>
             <Link href="/faq">FAQ Martinique</Link>
+            <Link href="/legal/cgu">CGU</Link>
+            <Link href="/legal/confidentialite">Confidentialité</Link>
+            <Link href="/legal/douane-martinique">Douane Martinique</Link>
           </div>
           <div className="grid gap-3">
             <WhatsappButton label="Contacter KAYGO" />
@@ -104,13 +119,13 @@ function CTAGroup() {
   return (
     <div className="flex flex-col gap-3 sm:flex-row">
       <Link href={publicLink("/contact")} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#10243f] px-6 py-4 text-sm font-black text-white shadow-xl shadow-slate-900/20">
-        Envoyer un colis <ArrowRight className="h-4 w-4" />
+        Tester un envoi <ArrowRight className="h-4 w-4" />
       </Link>
       <Link href={publicLink("/contact")} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#10243f]/15 bg-white px-6 py-4 text-sm font-black text-[#10243f]">
-        Publier un trajet
+        Je voyage bientôt
       </Link>
       <Link href={publicLink("/estimer")} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#04a7b5]/25 bg-[#e6fbfd] px-6 py-4 text-sm font-black text-[#075e68]">
-        Estimer un prix
+        Estimer mon colis
       </Link>
     </div>
   );
@@ -135,14 +150,19 @@ export function PublicLandingPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#b8f3f6,transparent_34%),linear-gradient(135deg,#f7fbfb_0%,#f1f7ef_52%,#e9f7fb_100%)]" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <div className="mb-5 inline-flex rounded-full border border-[#04a7b5]/20 bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#08717b]">
-              Petits colis France ⇄ Martinique
+            <div className="mb-5 flex flex-wrap gap-2">
+              <div className="inline-flex rounded-full border border-[#04a7b5]/20 bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#08717b]">
+                Petits colis France ⇄ Martinique
+              </div>
+              <div className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-amber-700">
+                Phase pilote
+              </div>
             </div>
             <h1 className="font-display text-4xl font-black leading-[0.98] text-[#10243f] sm:text-6xl lg:text-7xl">
-              Envoyez plus clair, plus local, plus souple.
+              Envoyez un petit colis France ⇄ Martinique avec un voyageur vérifié.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-slate-650 sm:text-lg">
-              KAYGO facilite l’envoi de petits colis entre la France et la Martinique grâce à des voyageurs vérifiés, une mise en relation structurée et un suivi plus humain.
+              KAYGO facilite une mise en relation structurée pour les premiers tests réels : colis contrôlables, validation manuelle, objets interdits visibles et preuve de remise.
             </p>
             <div className="mt-8">
               <CTAGroup />
@@ -176,11 +196,11 @@ export function PublicLandingPage() {
       <section className="px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-            <TrustCard icon={BadgeCheck} title="Voyageurs vérifiés" text="Validation avant mise en relation." />
-            <TrustCard icon={Route} title="Processus structuré" text="Étapes simples, pas de promesse automatique." />
+            <TrustCard icon={BadgeCheck} title="Voyageurs vérifiés" text="Validation manuelle avant mise en relation." />
+            <TrustCard icon={Route} title="Processus structuré" text="Demande, matching, validation et remise suivie." />
             <TrustCard icon={Package} title="Petits colis" text="Priorité aux objets faciles à contrôler." />
             <TrustCard icon={MapPin} title="France ⇄ Martinique" text="Périmètre clair dès le lancement." />
-            <TrustCard icon={Clock} title="Suivi" text="Validation et remise cadrées." />
+            <TrustCard icon={Clock} title="Suivi humain" text="Aucune promesse automatique sans confirmation." />
             <TrustCard icon={Ban} title="Objets interdits" text="Règles visibles avant demande." />
           </div>
         </div>
@@ -237,24 +257,116 @@ export function PublicLandingPage() {
 }
 
 export function EstimatePage() {
+  const [departureCity, setDepartureCity] = useState("Paris");
+  const [arrivalCity, setArrivalCity] = useState("Fort-de-France");
+  const [weightKg, setWeightKg] = useState("2");
+  const [serviceLevel, setServiceLevel] = useState<"eco" | "confort" | "premium">("eco");
+  const [pickupOption, setPickupOption] = useState(false);
+  const [deliveryOption, setDeliveryOption] = useState(true);
+  const [urgencyLevel, setUrgencyLevel] = useState<"normal" | "urgent">("normal");
+  const [estimate, setEstimate] = useState<PriceEstimateResponse | null>(null);
+  const [estimateStatus, setEstimateStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [estimateMessage, setEstimateMessage] = useState("");
+
+  async function handleEstimate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setEstimateStatus("loading");
+    setEstimateMessage("");
+
+    try {
+      const result = await apiJson<PriceEstimateResponse>("/api/pricing/estimate", {
+        method: "POST",
+        body: JSON.stringify({
+          weightKg: Number(weightKg),
+          pickupOption,
+          deliveryOption,
+          urgencyLevel,
+          serviceLevel,
+        }),
+      });
+      setEstimate(result);
+      setEstimateStatus("idle");
+      setEstimateMessage("Estimation API calculée. Prix indicatif sous réserve de validation du colis et du trajet.");
+    } catch {
+      setEstimate(null);
+      setEstimateStatus("error");
+      setEstimateMessage("API pricing indisponible. L’estimation réelle nécessite VITE_API_BASE_URL et l’API KayGo en ligne.");
+    }
+  }
+
   return (
     <PublicShell>
       <PublicPageHero eyebrow="Estimation" title="Estimer un envoi France ⇄ Martinique" text="Simulation indicative sans paiement. Le prix final dépend de la validation du colis, du trajet disponible et du voyageur." icon={Calculator} />
       <section className="px-4 pb-16 sm:px-6">
-        <div className="mx-auto grid max-w-4xl gap-4 rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-900/5 md:grid-cols-2">
-          {["Ville départ", "Ville arrivée", "Poids estimé", "Objet fragile", "Niveau de service", "Contact"].map((label) => (
-            <label key={label} className="grid gap-2 text-sm font-black text-[#10243f]">
-              {label}
-              <input className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]" placeholder={label === "Contact" ? "Téléphone ou email" : label} />
+        <form onSubmit={handleEstimate} className="mx-auto grid max-w-5xl gap-4 rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-900/5 md:grid-cols-2">
+          <label className="grid gap-2 text-sm font-black text-[#10243f]">
+            Ville départ
+            <input value={departureCity} onChange={(event) => setDepartureCity(event.target.value)} className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]" />
+          </label>
+          <label className="grid gap-2 text-sm font-black text-[#10243f]">
+            Ville arrivée
+            <input value={arrivalCity} onChange={(event) => setArrivalCity(event.target.value)} className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]" />
+          </label>
+          <label className="grid gap-2 text-sm font-black text-[#10243f]">
+            Poids estimé kg
+            <input type="number" min="0.1" max="30" step="0.1" value={weightKg} onChange={(event) => setWeightKg(event.target.value)} className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]" />
+          </label>
+          <label className="grid gap-2 text-sm font-black text-[#10243f]">
+            Niveau de service
+            <select value={serviceLevel} onChange={(event) => setServiceLevel(event.target.value as "eco" | "confort" | "premium")} className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]">
+              <option value="eco">Éco</option>
+              <option value="confort">Confort</option>
+              <option value="premium">Premium</option>
+            </select>
+          </label>
+          <label className="grid gap-2 text-sm font-black text-[#10243f]">
+            Urgence
+            <select value={urgencyLevel} onChange={(event) => setUrgencyLevel(event.target.value as "normal" | "urgent")} className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]">
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </label>
+          <div className="grid gap-3 rounded-2xl border border-slate-200 p-4 text-sm font-black text-[#10243f]">
+            <label className="flex items-center gap-3">
+              <input type="checkbox" checked={pickupOption} onChange={(event) => setPickupOption(event.target.checked)} />
+              Collecte en France
             </label>
-          ))}
-          <div className="rounded-2xl bg-[#e6fbfd] p-4 text-sm font-bold leading-6 text-[#075e68] md:col-span-2">
-            Mode estimation indicatif : branchement API pricing à valider si l’endpoint est disponible.
+            <label className="flex items-center gap-3">
+              <input type="checkbox" checked={deliveryOption} onChange={(event) => setDeliveryOption(event.target.checked)} />
+              Livraison en Martinique
+            </label>
           </div>
-          <div className="md:col-span-2">
+
+          <div className="rounded-2xl bg-[#e6fbfd] p-4 text-sm font-bold leading-6 text-[#075e68] md:col-span-2">
+            Prix indicatif sous réserve de validation du colis, du voyageur disponible, des règles douanières et des objets interdits. API configurée : {hasApiBaseUrl() ? "oui" : "non"}.
+          </div>
+
+          {estimateMessage && (
+            <div className={`rounded-2xl p-4 text-sm font-bold leading-6 md:col-span-2 ${estimateStatus === "error" ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}>
+              {estimateMessage}
+            </div>
+          )}
+
+          {estimate && (
+            <div className="grid gap-3 rounded-[1.5rem] border border-[#04a7b5]/20 bg-[#f4fbfc] p-5 md:col-span-2 md:grid-cols-5">
+              <PriceItem label="Transport" value={estimate.transportFee} />
+              <PriceItem label="Service" value={estimate.serviceFee} />
+              <PriceItem label="Collecte" value={estimate.pickupFee} />
+              <PriceItem label="Livraison" value={estimate.deliveryFee} />
+              <PriceItem label="Total indicatif" value={estimate.totalPrice} strong />
+              <p className="text-xs font-bold text-slate-600 md:col-span-5">
+                Délai estimé : {estimate.estimatedDays} jour(s), à confirmer après validation.
+              </p>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3 md:col-span-2 sm:flex-row">
+            <button type="submit" disabled={estimateStatus === "loading"} className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#10243f] px-6 py-4 text-sm font-black text-white disabled:opacity-70">
+              {estimateStatus === "loading" ? "Calcul..." : "Calculer l’estimation"}
+            </button>
             <WhatsappButton label="Envoyer ma demande" />
           </div>
-        </div>
+        </form>
       </section>
     </PublicShell>
   );
@@ -323,6 +435,93 @@ export function ContactPage() {
   );
 }
 
+export function LegalCguPage() {
+  return (
+    <PublicShell>
+      <PublicPageHero eyebrow="Conditions générales" title="CGU KayGo - phase pilote" text="Cadre minimal de mise en relation pour petits colis France ⇄ Martinique. À faire relire avant exploitation commerciale complète." icon={FileQuestion} />
+      <LegalSection
+        title="Rôle de KayGo"
+        items={[
+          "KayGo est une plateforme de mise en relation entre expéditeurs, voyageurs et destinataires.",
+          "KayGo ne promet pas automatiquement qu’un colis sera accepté, transporté ou livré.",
+          "Chaque demande reste soumise à validation manuelle, disponibilité voyageur et conformité du contenu.",
+        ]}
+      />
+      <LegalSection
+        title="Responsabilités utilisateur"
+        items={[
+          "L’expéditeur déclare le contenu réel du colis et fournit des informations exactes.",
+          "Le voyageur ne doit accepter qu’un colis vérifié, contrôlable et compatible avec son trajet.",
+          "KayGo peut refuser une demande si elle présente un risque opérationnel, légal ou de sécurité.",
+        ]}
+      />
+    </PublicShell>
+  );
+}
+
+export function LegalPrivacyPage() {
+  return (
+    <PublicShell>
+      <PublicPageHero eyebrow="Confidentialité" title="Données personnelles et contact" text="Politique simple pour la phase pilote : collecter peu, protéger les données, permettre la suppression." icon={ShieldCheck} />
+      <LegalSection
+        title="Données collectées"
+        items={[
+          "Identité, contact, informations de trajet, demande colis et échanges nécessaires au suivi.",
+          "Les données servent à qualifier les demandes, contacter les parties et gérer les preuves de remise.",
+          "Les emails et téléphones ne doivent pas être affichés publiquement.",
+        ]}
+      />
+      <LegalSection
+        title="Droits et consentement"
+        items={[
+          "L’utilisateur peut demander export, correction ou suppression des données.",
+          "Le contact WhatsApp/email doit rester lié à une demande ou un consentement explicite.",
+          "Aucun secret, token ou mot de passe ne doit être stocké dans le dépôt ou affiché dans l’interface.",
+        ]}
+      />
+    </PublicShell>
+  );
+}
+
+export function LegalProhibitedItemsPage() {
+  return (
+    <PublicShell>
+      <PublicPageHero eyebrow="Objets interdits" title="Objets refusés ou à validation renforcée" text="KayGo privilégie les petits colis simples à contrôler. Tout doute doit bloquer la mise en relation." icon={Ban} />
+      <section className="px-4 pb-16 sm:px-6">
+        <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3">
+          <InfoList title="Refusés" items={["Batteries seules ou power banks non validés", "E-cigarettes ou éléments réglementés", "Liquides inflammables", "Aérosols non validés", "Armes, argent liquide, produits illégaux"]} />
+          <InfoList title="Réglementés" items={["Médicaments", "Produits alimentaires", "Électronique de valeur", "Cosmétiques / liquides", "Animaux, végétaux ou espèces protégées"]} />
+          <InfoList title="Exigences" items={["Description claire", "Photo si utile", "Poids réel", "Valeur déclarée", "Refus possible sans justification détaillée en cas de risque"]} />
+        </div>
+      </section>
+    </PublicShell>
+  );
+}
+
+export function LegalCustomsPage() {
+  return (
+    <PublicShell>
+      <PublicPageHero eyebrow="Douane Martinique" title="Rappel douane, TVA et octroi de mer" text="La Martinique est un DROM : certains biens peuvent nécessiter formalités, taxes ou refus. Cette page reste informative et doit être vérifiée avant lancement." icon={MapPin} />
+      <LegalSection
+        title="Points à retenir"
+        items={[
+          "L’utilisateur reste responsable de la déclaration réelle du contenu et de sa valeur.",
+          "Certains biens peuvent être soumis à TVA, octroi de mer ou formalités douanières.",
+          "KayGo peut suspendre une demande si le contenu, la valeur ou la destination posent un doute.",
+        ]}
+      />
+      <LegalSection
+        title="Avant validation"
+        items={[
+          "Confirmer la nature du bien, son poids, sa valeur, ses restrictions et son conditionnement.",
+          "Refuser les objets dangereux, réglementés ou impossibles à contrôler.",
+          "Conserver une trace de validation pour la phase pilote.",
+        ]}
+      />
+    </PublicShell>
+  );
+}
+
 function PublicPageHero({ eyebrow, title, text, icon: Icon }: { eyebrow: string; title: string; text: string; icon: typeof HelpCircle }) {
   return (
     <section className="px-4 py-14 sm:px-6">
@@ -333,6 +532,35 @@ function PublicPageHero({ eyebrow, title, text, icon: Icon }: { eyebrow: string;
         <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-100">{eyebrow}</p>
         <h1 className="mt-4 font-display text-4xl font-black leading-tight text-white md:text-6xl">{title}</h1>
         <p className="mt-5 max-w-3xl text-base leading-8 text-slate-200">{text}</p>
+      </div>
+    </section>
+  );
+}
+
+function PriceItem({ label, value, strong }: { label: string; value: number; strong?: boolean }) {
+  return (
+    <div className="rounded-2xl bg-white p-4">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
+      <p className={`mt-2 font-display ${strong ? "text-2xl font-black text-[#10243f]" : "text-xl font-black text-[#075e68]"}`}>
+        {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(value)}
+      </p>
+    </div>
+  );
+}
+
+function LegalSection({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section className="px-4 pb-8 sm:px-6">
+      <div className="mx-auto max-w-5xl rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-900/5">
+        <h2 className="font-display text-2xl font-black">{title}</h2>
+        <div className="mt-5 grid gap-3">
+          {items.map((item) => (
+            <div key={item} className="flex gap-3 rounded-2xl bg-[#f4f8f8] p-4 text-sm font-bold leading-6 text-slate-700">
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-[#04a7b5]" />
+              {item}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

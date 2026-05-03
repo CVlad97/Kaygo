@@ -1,6 +1,14 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, LogOut, Search } from "lucide-react";
+import { clearAuthSession, getStoredAuthUser } from "@/lib/session";
 
 export function Header() {
+  const user = getStoredAuthUser();
+
+  function logout() {
+    clearAuthSession();
+    window.location.assign(`${import.meta.env.BASE_URL}admin/login`);
+  }
+
   return (
     <header className="h-20 bg-background/80 backdrop-blur-xl border-b border-border/50 sticky top-0 z-30 flex items-center justify-between px-8">
       <div className="flex-1 max-w-lg">
@@ -15,9 +23,17 @@ export function Header() {
       </div>
       
       <div className="flex items-center gap-6">
+        {user && (
+          <span className="hidden text-xs font-bold text-muted-foreground md:inline">
+            {user.firstName} {user.lastName}
+          </span>
+        )}
         <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors hover:bg-black/5 rounded-full">
           <Bell className="h-5 w-5" />
           <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive border-2 border-background"></span>
+        </button>
+        <button onClick={logout} className="p-2 text-muted-foreground hover:text-foreground transition-colors hover:bg-black/5 rounded-full" aria-label="Déconnexion">
+          <LogOut className="h-5 w-5" />
         </button>
       </div>
     </header>

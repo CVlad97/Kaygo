@@ -1,5 +1,9 @@
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, "") || "";
 
+export function hasApiBaseUrl() {
+  return Boolean(apiBaseUrl);
+}
+
 export async function apiJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
