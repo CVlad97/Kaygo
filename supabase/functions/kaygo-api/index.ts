@@ -2,16 +2,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 type JsonValue = Record<string, unknown> | unknown[];
 
-type KaygoUser = {
-  id: string;
+type KaygoAdmin = {
   email: string;
-  password_hash: string;
-  role: "sender" | "traveler" | "receiver" | "admin";
-  first_name: string;
-  last_name: string;
-  phone: string | null;
-  verification_status: string;
-  created_at: string;
+  role: "admin";
 };
 
 type JwtPayload = {
@@ -24,7 +17,7 @@ type JwtPayload = {
 const allowedOrigin = "https://cvlad97.github.io";
 const supabaseUrl = requiredEnv("SUPABASE_URL");
 const serviceRoleKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
-const jwtSecret = requiredEnv("KAYGO_JWT_SECRET");
+const schema = "kaygo";
 
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin") || "";
@@ -42,12 +35,16 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const path = normalizePath(url.pathname);
 
+    if (req.method === "GET" && path === "/") {
+      return json({ ok: true, service: "kaygo-api", schema }, 200, corsHeaders);
+    }
+
     if (req.method === "POST" && path === "/auth/login") {
-      return handleLogin(req, corsHeaders);
+      return await handleLogin(req, corsHeaders);
     }
 
     if (req.method === "POST" && path === "/pricing/estimate") {
-      return handlePriceEstimate(req, corsHeaders);
+      return await handlePriceEstimate(req, corsHeaders);
     }
 
     if (req.method === "GET" && path === "/admin/me") {
@@ -57,19 +54,19 @@ Deno.serve(async (req) => {
 
     if (req.method === "GET" && path === "/admin/trips") {
       await requireAdmin(req);
-      const trips = await restSelect("kaygo_trips", "select=*&order=created_at.desc&limit=100");
+      const trips = await restSelect("trips", "select=*&order=created_at.desc&limit=100");
       return json({ trips, total: trips.length }, 200, corsHeaders);
     }
 
     if (req.method === "GET" && path === "/admin/parcels") {
       await requireAdmin(req);
-      const parcels = await restSelect("kaygo_parcels", "select=*&order=created_at.desc&limit=100");
+      const parcels = await restSelect("parcels", "select=*&order=created_at.desc&limit=100");
       return json({ parcels, total: parcels.length }, 200, corsHeaders);
     }
 
     if (req.method === "GET" && path === "/admin/matches") {
       await requireAdmin(req);
-      const matches = await restSelect("kaygo_matches", "select=*&order=created_at.desc&limit=100");
+      const matches = await restSelect("matches", "select=*&order=created_at.desc&limit=100");
       return json({ matches, total: matches.length }, 200, corsHeaders);
     }
 
@@ -88,35 +85,32 @@ async function handleLogin(req: Request, headers: HeadersInit) {
   const body = await readJson<{ email?: string; password?: string }>(req);
   const email = body.email?.trim().toLowerCase();
   const password = body.password || "";
+  const adminEmail = optionalEnv("KAYGO_ADMIN_EMAIL")?.trim().toLowerCase();
+  const adminPassword = optionalEnv("KAYGO_ADMIN_PASSWORD");
 
   if (!email || !password) {
     throw new HttpError(400, "INVALID_LOGIN_INPUT", "Email and password are required.");
   }
 
-  const users = await restSelect<KaygoUser>(
-    "kaygo_users",
-    `select=*&email=eq.${encodeURIComponent(email)}&limit=1`,
-  );
-  const user = users[0];
+  if (!adminEmail || !adminPassword || !optionalEnv("KAYGO_JWT_SECRET")) {
+    throw new HttpError(503, "ADMIN_LOGIN_NOT_CONFIGURED", "Admin login secrets are not configured.");
+  }
 
-  if (!user || !(await verifyPassword(password, user.password_hash))) {
+  if (email !== adminEmail || !constantTimeEquals(password, adminPassword)) {
     throw new HttpError(401, "INVALID_CREDENTIALS", "Invalid email or password.");
   }
 
-  if (user.verification_status === "suspended") {
-    throw new HttpError(403, "USER_SUSPENDED", "User is suspended.");
-  }
-
-  await audit(user.id, "auth.login", "kaygo_user", user.id, { role: user.role });
+  const admin: KaygoAdmin = { email: adminEmail, role: "admin" };
+  await audit(admin.email, "auth.login", "admin", undefined, { role: admin.role });
 
   return json({
     token: await signJwt({
-      sub: user.id,
-      role: user.role,
-      email: user.email,
+      sub: admin.email,
+      role: admin.role,
+      email: admin.email,
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 12,
     }),
-    user: serializeUser(user),
+    user: serializeUser(admin),
   }, 200, headers);
 }
 
@@ -128,6 +122,8 @@ async function handlePriceEstimate(req: Request, headers: HeadersInit) {
     urgencyLevel?: string;
     serviceLevel?: "eco" | "confort" | "premium";
     contact?: string;
+    departureCity?: string;
+    arrivalCity?: string;
   }>(req);
   const weightKg = Number(body.weightKg);
 
@@ -158,10 +154,17 @@ async function handlePriceEstimate(req: Request, headers: HeadersInit) {
     disclaimer: "Prix indicatif sous réserve de validation du colis, du trajet et des règles douanières.",
   };
 
-  await restInsert("kaygo_estimates", {
-    request: body,
-    response,
+  await createEstimate({
+    departure_city: typeof body.departureCity === "string" ? body.departureCity : "France",
+    arrival_city: typeof body.arrivalCity === "string" ? body.arrivalCity : "Martinique",
+    weight_kg: weightKg,
+    service_level: serviceLevel,
+    urgency_level: typeof body.urgencyLevel === "string" ? body.urgencyLevel : "normal",
+    pickup_option: Boolean(body.pickupOption),
+    delivery_option: Boolean(body.deliveryOption),
     contact: typeof body.contact === "string" ? body.contact : null,
+    result: response,
+    status: "estimated",
   });
 
   return json(response, 200, headers);
@@ -181,16 +184,14 @@ async function requireUser(req: Request) {
   if (!token) throw new HttpError(401, "UNAUTHORIZED", "Missing bearer token.");
 
   const payload = await verifyJwt(token);
-  const users = await restSelect<KaygoUser>(
-    "kaygo_users",
-    `select=*&id=eq.${encodeURIComponent(payload.sub)}&limit=1`,
-  );
-  const user = users[0];
-  if (!user) throw new HttpError(401, "UNAUTHORIZED", "User not found.");
-  return user;
+  if (payload.role !== "admin") {
+    throw new HttpError(403, "FORBIDDEN", "Admin role required.");
+  }
+  return { email: payload.email, role: "admin" } as KaygoAdmin;
 }
 
 async function signJwt(payload: JwtPayload) {
+  const jwtSecret = requiredEnv("KAYGO_JWT_SECRET");
   const header = { alg: "HS256", typ: "JWT" };
   const encodedHeader = base64UrlEncode(JSON.stringify(header));
   const encodedPayload = base64UrlEncode(JSON.stringify(payload));
@@ -199,6 +200,7 @@ async function signJwt(payload: JwtPayload) {
 }
 
 async function verifyJwt(token: string): Promise<JwtPayload> {
+  const jwtSecret = requiredEnv("KAYGO_JWT_SECRET");
   const [encodedHeader, encodedPayload, signature] = token.split(".");
   if (!encodedHeader || !encodedPayload || !signature) {
     throw new HttpError(401, "UNAUTHORIZED", "Malformed token.");
@@ -216,31 +218,12 @@ async function verifyJwt(token: string): Promise<JwtPayload> {
   return payload;
 }
 
-async function verifyPassword(password: string, passwordHash: string) {
-  const [scheme, iterationsText, saltText, hashText] = passwordHash.split("$");
-  if (scheme !== "pbkdf2" || !iterationsText || !saltText || !hashText) return false;
-
-  const iterations = Number(iterationsText);
-  const salt = base64UrlDecode(saltText);
-  const expectedHash = base64UrlDecode(hashText);
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
-  const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt, iterations },
-    keyMaterial,
-    expectedHash.byteLength * 8,
-  );
-  return constantTimeBytes(new Uint8Array(bits), expectedHash);
-}
-
 async function restSelect<T = Record<string, unknown>>(table: string, query: string): Promise<T[]> {
   const response = await fetch(`${supabaseUrl}/rest/v1/${table}?${query}`, {
-    headers: restHeaders(),
+    headers: {
+      ...restHeaders(),
+      "Accept-Profile": schema,
+    },
   });
   if (!response.ok) throw new Error(`REST_SELECT_FAILED_${table}_${response.status}`);
   return response.json();
@@ -252,6 +235,7 @@ async function restInsert(table: string, payload: JsonValue) {
     headers: {
       ...restHeaders(),
       "Content-Type": "application/json",
+      "Content-Profile": schema,
       Prefer: "return=minimal",
     },
     body: JSON.stringify(payload),
@@ -259,12 +243,25 @@ async function restInsert(table: string, payload: JsonValue) {
   if (!response.ok) throw new Error(`REST_INSERT_FAILED_${table}_${response.status}`);
 }
 
-async function audit(actorUserId: string | null, action: string, entityType?: string, entityId?: string, metadata: JsonValue = {}) {
-  await restInsert("kaygo_audit_logs", {
-    actor_user_id: actorUserId,
+async function createEstimate(payload: Record<string, unknown>) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/kaygo_create_estimate`, {
+    method: "POST",
+    headers: {
+      ...restHeaders(),
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({ payload }),
+  });
+  if (!response.ok) throw new Error(`RPC_CREATE_ESTIMATE_FAILED_${response.status}`);
+}
+
+async function audit(actor: string | null, action: string, targetType?: string, targetId?: string, metadata: JsonValue = {}) {
+  await restInsert("audit_logs", {
+    actor,
     action,
-    entity_type: entityType,
-    entity_id: entityId,
+    target_type: targetType,
+    target_id: targetId,
     metadata,
   }).catch((error) => console.error("AUDIT_LOG_FAILED", error));
 }
@@ -278,28 +275,28 @@ function restHeaders() {
 
 async function readJson<T>(req: Request): Promise<T> {
   try {
-    return await req.json();
+    const text = await req.text();
+    return (text ? JSON.parse(text) : {}) as T;
   } catch {
     throw new HttpError(400, "INVALID_JSON", "Request body must be JSON.");
   }
 }
 
-function serializeUser(user: KaygoUser) {
+function serializeUser(user: KaygoAdmin) {
   return {
-    id: user.id,
+    id: user.email,
     role: user.role,
-    firstName: user.first_name,
-    lastName: user.last_name,
+    firstName: "KayGo",
+    lastName: "Admin",
     email: user.email,
-    phone: user.phone,
-    verificationStatus: user.verification_status,
-    createdAt: user.created_at,
+    phone: null,
+    verificationStatus: "verified",
   };
 }
 
 function normalizePath(pathname: string) {
-  const marker = "/kaygo-api";
-  const afterFunction = pathname.includes(marker) ? pathname.slice(pathname.indexOf(marker) + marker.length) : pathname;
+  const segments = pathname.split("/").filter(Boolean);
+  const afterFunction = segments.length > 0 ? `/${segments.slice(1).join("/")}` : "/";
   const withoutApi = afterFunction.startsWith("/api/") ? afterFunction.slice(4) : afterFunction;
   return withoutApi === "" ? "/" : withoutApi;
 }
@@ -372,8 +369,17 @@ function requiredEnv(name: string) {
   return value;
 }
 
+function optionalEnv(name: string) {
+  return Deno.env.get(name) || "";
+}
+
 class HttpError extends Error {
-  constructor(public status: number, public code: string, message: string) {
+  status: number;
+  code: string;
+
+  constructor(status: number, code: string, message: string) {
     super(message);
+    this.status = status;
+    this.code = code;
   }
 }
