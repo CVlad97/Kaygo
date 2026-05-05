@@ -70,6 +70,21 @@ Deno.serve(async (req) => {
       return json({ matches, total: matches.length }, 200, corsHeaders);
     }
 
+    if (req.method === "GET" && path === "/payments") {
+      await requireAdmin(req);
+      return await handleListPayments(corsHeaders);
+    }
+
+    if (req.method === "POST" && path === "/payments/register-link") {
+      await requireAdmin(req);
+      return await handleRegisterPaymentLink(req, corsHeaders);
+    }
+
+    if (req.method === "POST" && path === "/payments/mark-paid") {
+      await requireAdmin(req);
+      return await handleMarkPaymentPaid(req, corsHeaders);
+    }
+
     return json({ error: "NOT_FOUND", path }, 404, corsHeaders);
   } catch (error) {
     if (error instanceof HttpError) {
@@ -170,6 +185,49 @@ async function handlePriceEstimate(req: Request, headers: HeadersInit) {
   return json(response, 200, headers);
 }
 
+async function handleListPayments(headers: HeadersInit) {
+  const intents = await restSelect<Record<string, unknown>>(
+    "payment_intents",
+    "select=*&order=created_at.desc&limit=100",
+  );
+  const payouts = await restSelect<Record<string, unknown>>(
+    "payout_intents",
+    "select=payment_intent_id,status&order=created_at.desc&limit=200",
+  );
+  const payoutByPaymentIntent = new Map(
+    payouts.map((payout) => [String(payout.payment_intent_id), payout]),
+  );
+
+  const payments = intents.map((intent) => {
+    const payout = payoutByPaymentIntent.get(String(intent.id));
+    return {
+      id: intent.public_ref ?? intent.id,
+      internalId: intent.id,
+      shipmentId: intent.shipment_id,
+      createdAt: intent.created_at,
+      amount: Number(intent.gross_amount_eur ?? 0),
+      paymentStatus: intent.status,
+      payoutStatus: payout?.status ?? "blocked",
+      provider: intent.provider,
+      paymentLink: intent.provider_checkout_url,
+    };
+  });
+
+  return json({ payments, total: payments.length }, 200, headers);
+}
+
+async function handleRegisterPaymentLink(req: Request, headers: HeadersInit) {
+  const payload = await readJson<Record<string, unknown>>(req);
+  const result = await callRpc("kaygo_register_payment_link", payload);
+  return json({ result }, 200, headers);
+}
+
+async function handleMarkPaymentPaid(req: Request, headers: HeadersInit) {
+  const payload = await readJson<Record<string, unknown>>(req);
+  const result = await callRpc("kaygo_mark_payment_paid", payload);
+  return json({ result }, 200, headers);
+}
+
 async function requireAdmin(req: Request) {
   const user = await requireUser(req);
   if (user.role !== "admin") {
@@ -254,6 +312,20 @@ async function createEstimate(payload: Record<string, unknown>) {
     body: JSON.stringify({ payload }),
   });
   if (!response.ok) throw new Error(`RPC_CREATE_ESTIMATE_FAILED_${response.status}`);
+}
+
+async function callRpc(name: string, payload: Record<string, unknown>) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${name}`, {
+    method: "POST",
+    headers: {
+      ...restHeaders(),
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({ payload }),
+  });
+  if (!response.ok) throw new Error(`RPC_${name.toUpperCase()}_FAILED_${response.status}`);
+  return response.json();
 }
 
 async function audit(actor: string | null, action: string, targetType?: string, targetId?: string, metadata: JsonValue = {}) {
