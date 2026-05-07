@@ -32,6 +32,7 @@ type PriceEstimateResponse = {
 
 const DEFAULT_WHATSAPP_URL = "https://wa.me/596696653589";
 const whatsappUrl = import.meta.env.VITE_WHATSAPP_URL?.trim() || DEFAULT_WHATSAPP_URL;
+const kaygoLeadStorageKey = "kaygo_public_leads";
 
 function publicLink(path: string) {
   return path;
@@ -58,6 +59,102 @@ function WhatsappButton({ label = "Contacter sur WhatsApp" }: { label?: string }
       <MessageCircle className="h-4 w-4" />
       {label}
     </a>
+  );
+}
+
+type KaygoLeadForm = {
+  name: string;
+  contact: string;
+  requestType: string;
+  route: string;
+  parcel: string;
+  timing: string;
+};
+
+function PilotLeadForm() {
+  const [lead, setLead] = useState<KaygoLeadForm>({
+    name: "",
+    contact: "",
+    requestType: "Envoyer un colis",
+    route: "France → Martinique",
+    parcel: "",
+    timing: "",
+  });
+  const [saved, setSaved] = useState(false);
+
+  const updateLead = (field: keyof KaygoLeadForm, value: string) => {
+    setLead((current) => ({ ...current, [field]: value }));
+  };
+
+  const buildMessage = () =>
+    [
+      "Bonjour KAYGO, je souhaite cadrer une demande pilote.",
+      `Nom : ${lead.name || "non renseigné"}`,
+      `Contact : ${lead.contact || "non renseigné"}`,
+      `Type : ${lead.requestType}`,
+      `Trajet : ${lead.route || "à préciser"}`,
+      `Colis / place dispo : ${lead.parcel || "à préciser"}`,
+      `Délai : ${lead.timing || "non renseigné"}`,
+    ].join("\n");
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const entry = { ...lead, createdAt: new Date().toISOString() };
+    const current = JSON.parse(localStorage.getItem(kaygoLeadStorageKey) || "[]");
+    localStorage.setItem(kaygoLeadStorageKey, JSON.stringify([entry, ...current].slice(0, 80)));
+    setSaved(true);
+    const baseWhatsappUrl = whatsappUrl.split("?")[0] || DEFAULT_WHATSAPP_URL;
+    window.open(`${baseWhatsappUrl}?text=${encodeURIComponent(buildMessage())}`, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <div className="mx-auto mt-8 grid max-w-5xl gap-5 rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-900/5 lg:grid-cols-[0.9fr_1.1fr]">
+      <div>
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#048895]">Demande pilote</p>
+        <h2 className="mt-3 font-display text-3xl font-black">Qualifier avant de mettre en relation.</h2>
+        <p className="mt-4 text-sm font-bold leading-7 text-slate-600">
+          Le formulaire prépare un WhatsApp propre et conserve une copie locale. La validation humaine reste obligatoire avant toute mise en relation.
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="grid gap-2 text-sm font-black text-[#10243f]">
+            Nom
+            <input value={lead.name} onChange={(event) => updateLead("name", event.target.value)} placeholder="Nom ou société" className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]" />
+          </label>
+          <label className="grid gap-2 text-sm font-black text-[#10243f]">
+            Contact
+            <input value={lead.contact} onChange={(event) => updateLead("contact", event.target.value)} placeholder="WhatsApp ou email" className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]" />
+          </label>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="grid gap-2 text-sm font-black text-[#10243f]">
+            Type
+            <select value={lead.requestType} onChange={(event) => updateLead("requestType", event.target.value)} className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]">
+              <option>Envoyer un colis</option>
+              <option>Publier un trajet</option>
+              <option>Demande entreprise</option>
+            </select>
+          </label>
+          <label className="grid gap-2 text-sm font-black text-[#10243f]">
+            Trajet
+            <input value={lead.route} onChange={(event) => updateLead("route", event.target.value)} className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]" />
+          </label>
+        </div>
+        <label className="grid gap-2 text-sm font-black text-[#10243f]">
+          Colis, volume ou place disponible
+          <textarea value={lead.parcel} onChange={(event) => updateLead("parcel", event.target.value)} placeholder="Poids, dimensions, contenu, contraintes" className="min-h-28 rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-[#04a7b5]" />
+        </label>
+        <label className="grid gap-2 text-sm font-black text-[#10243f]">
+          Délai
+          <input value={lead.timing} onChange={(event) => updateLead("timing", event.target.value)} placeholder="Date, urgence ou flexibilité" className="min-h-12 rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-[#04a7b5]" />
+        </label>
+        <button type="submit" className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#10243f] px-6 py-4 text-sm font-black text-white">
+          Préparer WhatsApp et sauvegarder
+        </button>
+        {saved && <p className="text-sm font-black text-[#048895]">Demande sauvegardée localement. WhatsApp est préparé.</p>}
+      </form>
+    </div>
   );
 }
 
@@ -423,8 +520,8 @@ export function ContactPage() {
           <ContactCard title="Publier un trajet" text="Indiquez vos dates, bagage disponible et ville d’arrivée." />
           <ContactCard title="Demande entreprise" text="Précisez volume, fréquence et contact opérationnel." />
         </div>
+        <PilotLeadForm />
         <div className="mx-auto mt-8 max-w-5xl rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-900/5">
-          <WhatsappButton label="Contacter KAYGO" />
           <p className="mt-4 text-sm font-bold text-slate-500">
             WhatsApp business pilote : +596 696 65 35 89.
           </p>
