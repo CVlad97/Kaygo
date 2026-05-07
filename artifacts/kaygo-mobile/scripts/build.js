@@ -67,6 +67,13 @@ function getDeploymentDomain() {
     return stripProtocol(process.env.EXPO_PUBLIC_DOMAIN);
   }
 
+  if (process.env.CI !== "true") {
+    console.warn(
+      "WARNING: No deployment domain found. Falling back to localhost:8081 for local validation.",
+    );
+    return "localhost:8081";
+  }
+
   console.error(
     "ERROR: No deployment domain found. Set REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, or EXPO_PUBLIC_DOMAIN",
   );
