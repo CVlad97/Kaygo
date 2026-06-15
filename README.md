@@ -1,136 +1,124 @@
-# KAYGO
+# Kaygo
 
-KAYGO est une application ciblée France ⇄ Martinique pour organiser l'envoi de petits colis via voyageurs vérifiés.
+**Kaygo** est une application ciblée France ⇄ Martinique pour organiser l'envoi de petits colis via voyageurs vérifiés.
 
-## État actuel
+## Stack
 
-KayGo est prêt pour une présentation pilote publique contrôlée.
+| Couche | Technologie |
+|--------|-------------|
+| **Monorepo** | pnpm workspaces + TypeScript ~5.9 |
+| **Frontend Web** | React 19, Vite 7, Tailwind CSS 4, Radix UI, Framer Motion |
+| **Mobile** | Expo Router 54, React Native 0.81 |
+| **API** | Express 5, Drizzle ORM, Zod, JWT |
+| **Base de données** | PostgreSQL (via Drizzle) |
+| **Schémas / Validation** | Zod, Orval (codegen) |
+| **CI / Déploiement** | GitHub Actions, GitHub Pages |
 
-- Site public statique hébergé sur GitHub Pages.
-- Admin masqué sans session admin côté interface.
-- Login admin branché sur l'API séparée.
-- Estimation branchée sur `/api/pricing/estimate` avec message de fallback si l'API est absente.
-- Pages légales minimales disponibles : CGU, confidentialité, objets interdits, douane Martinique.
+## Prérequis
 
-KayGo n'est pas encore un service de production complet. Avant ouverture commerciale réelle, l'API doit être déployée, sécurisée, testée et reliée au front via `KAYGO_API_BASE_URL`.
+- **Node.js** 18 ou supérieur (recommandé : 20+)
+- **pnpm** 10+ ([installation](https://pnpm.io/installation))
+- Git
 
-## Architecture
+> ⚠️ Ce projet utilise exclusivement pnpm. N'utilisez pas npm ou yarn.
 
-- Front public et admin : `artifacts/kaygo-admin`
-- Landing publique : `/`
-- Admin : `/admin`
-- Login admin : `/admin/login`
-- Pages légales : `/legal/*`
-- API : `artifacts/api-server`, hébergement séparé
-- Client API : `lib/api-client-react`
-- Base path GitHub Pages : `/Kaygo/`
+## Installation
 
-GitHub Pages héberge uniquement le front statique. L'API doit rester déployée séparément et être fournie au build via `VITE_API_BASE_URL`.
+```bash
+git clone https://github.com/CVlad97/Kaygo.git
+cd Kaygo
+pnpm install
+```
 
 ## Variables d'environnement
 
-Variables utilisées par le front local :
+Copiez le fichier d'exemple et renseignez vos valeurs :
 
 ```bash
-PORT=4173
-BASE_PATH=/Kaygo/
-VITE_API_BASE_URL=https://api.example.com
-VITE_WHATSAPP_URL=https://wa.me/596696653589
+cp .env.example .env
 ```
 
-Variables recommandées côté GitHub Actions :
+Variables clés :
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_SUPABASE_URL` | URL du projet Supabase |
+| `VITE_SUPABASE_ANON_KEY` | Clé anonyme Supabase |
+| `VITE_API_BASE_URL` | URL de l'API déployée |
+| `PORT` | Port de dev (défaut : `4173`) |
+| `BASE_PATH` | Chemin de base (ex: `/Kaygo/` pour GitHub Pages) |
+
+## Scripts disponibles
 
 ```bash
-KAYGO_API_BASE_URL=https://api.example.com
-KAYGO_WHATSAPP_URL=https://wa.me/596696653589
+# Linter de types (tous les packages)
+pnpm typecheck
+
+# Build tous les packages web
+pnpm build
+
+# Build web uniquement
+pnpm build:web
+
+# Build mobile uniquement
+pnpm build:mobile
 ```
 
-`KAYGO_WHATSAPP_URL` / `VITE_WHATSAPP_URL` est optionnelle. Si elle est absente, le front utilise le WhatsApp business pilote validé : `https://wa.me/596696653589`.
+## Architecture du monorepo
 
-## Sécurité
+```
+Kaygo/
+├── artifacts/           # Applications déployables
+│   ├── api-server/      # API Express
+│   ├── kaygo-admin/     # Frontend admin & public
+│   ├── kaygo-mobile/    # App mobile Expo
+│   └── mockup-sandbox/  # Bac à sable UI
+├── lib/                 # Bibliothèques partagées
+│   ├── api-client-react/# Client API React (TanStack Query)
+│   ├── api-spec/        # Spécifications Orval / codegen
+│   ├── api-zod/         # Schémas Zod partagés
+│   └── db/              # Schémas Drizzle / DB
+├── scripts/             # Scripts utilitaires
+├── supabase/            # Config Supabase
+├── .env.example         # Variables d'environnement
+├── pnpm-workspace.yaml  # Configuration workspace
+└── tsconfig.base.json   # Base TypeScript
+```
 
-- Le front masque l'admin sans session locale valide.
-- Le token JWT stocké côté navigateur est envoyé automatiquement dans l'en-tête `Authorization: Bearer <token>` par le client API.
-- La vraie sécurité doit rester côté API : chaque route admin doit vérifier le JWT, le rôle `admin` et les permissions.
-- Aucun secret ne doit être commité dans le dépôt.
-- `JWT_SECRET`, les identifiants DB et les clés privées doivent rester dans l'hébergeur API ou les secrets GitHub.
+## État actuel
+
+Kaygo est prêt pour une présentation pilote publique contrôlée. Voir [LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md) pour les détails.
 
 ## Développement local
 
 ```bash
-pnpm install
+# Lancer le frontend admin
 PORT=4173 BASE_PATH=/Kaygo/ pnpm --filter @workspace/kaygo-admin run dev
+
+# Lancer l'API en mode développement
+pnpm --filter @workspace/api-server run dev
 ```
 
-## Build
-
-```bash
-PORT=4173 BASE_PATH=/Kaygo/ pnpm --filter @workspace/kaygo-admin run build
-PORT=4173 BASE_PATH=/Kaygo/ pnpm run typecheck
-```
-
-## Déploiement GitHub Pages
+## Déploiement (GitHub Pages)
 
 Le workflow `.github/workflows/deploy-kaygo-admin-pages.yml` :
-
-- installe pnpm
-- exécute le typecheck
-- build `@workspace/kaygo-admin`
-- copie `index.html` vers `404.html` pour le fallback SPA
-- ajoute des redirects statiques pour les routes critiques
-- publie `artifacts/kaygo-admin/dist/public`
+- Installe pnpm
+- Exécute le typecheck
+- Build `@workspace/kaygo-admin`
+- Copie `index.html` → `404.html` (fallback SPA)
+- Publie `artifacts/kaygo-admin/dist/public`
 
 Variables GitHub recommandées :
+- `KAYGO_API_BASE_URL` — URL de l'API déployée
+- `KAYGO_WHATSAPP_URL` — Canal WhatsApp business pilote
 
-- `KAYGO_API_BASE_URL` dans Repository Variables ou Secrets
-- `KAYGO_WHATSAPP_URL=https://wa.me/596696653589` pour le canal WhatsApp business pilote
+## Sécurité
 
-## Vérification post-déploiement
+- Aucun secret ne doit être commité. Voir `.gitignore` et `.env.example`.
+- Le JWT est stocké côté navigateur et envoyé en en-tête `Authorization`.
+- La sécurité réelle est côté API : vérification JWT, rôle `admin`, permissions.
+- `JWT_SECRET`, identifiants DB et clés privées restent dans les secrets d'hébergement.
 
-- Ouvrir `/Kaygo/`
-- Ouvrir `/Kaygo/admin`
-- Vérifier la redirection sans session vers `/Kaygo/admin/login`
-- Ouvrir `/Kaygo/admin/login`
-- Tester `/Kaygo/estimer`
-- Tester `/Kaygo/legal/cgu`
-- Tester `/Kaygo/legal/confidentialite`
-- Tester `/Kaygo/legal/objets-interdits`
-- Tester `/Kaygo/legal/douane-martinique`
-- Vérifier que les assets chargent sous `/Kaygo/`
-- Vérifier que l'admin affiche un état honnête si l'API est absente
+## Licence
 
-## Avant production réelle
-
-1. Déployer `artifacts/api-server` sur un hébergeur adapté.
-2. Configurer `JWT_SECRET`, CORS, origine GitHub Pages, base de données et variables serveur.
-3. Créer un vrai compte admin.
-4. Configurer `KAYGO_API_BASE_URL` dans GitHub.
-5. Relancer le workflow Pages.
-6. Tester login réel, estimation réelle, refus mauvais token et refus rôle non admin.
-7. Faire relire les pages légales par une personne compétente avant exploitation commerciale complète.
-
-## Rollback
-
-1. Identifier le dernier commit stable :
-
-```bash
-git log --oneline
-```
-
-2. Revenir par revert non destructif :
-
-```bash
-git revert <commit>
-git push origin main
-```
-
-3. Vérifier GitHub Pages après le workflow.
-
-## Troubleshooting
-
-- `PORT environment variable is required` : exporter `PORT=4173`.
-- `BASE_PATH environment variable is required` : exporter `BASE_PATH=/Kaygo/`.
-- API non joignable : vérifier `VITE_API_BASE_URL` ou `KAYGO_API_BASE_URL`, sans supposer que GitHub Pages héberge l'API.
-- Login bloqué : vérifier l'API, `/api/auth/login`, le compte admin, le rôle `admin` et CORS.
-- Estimation bloquée : vérifier `/api/pricing/estimate` et `KAYGO_API_BASE_URL`.
-- Refresh 404 sur sous-route : vérifier que `404.html` et les redirects statiques sont présents dans `dist/public`.
+MIT
