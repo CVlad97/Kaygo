@@ -1,0 +1,6 @@
+{
+  "name": "calculate-price",
+  "version": "1.0.0",
+  "description": "Kaygo price estimation edge function",
+  "main": "index.ts"
+}
