@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 350" fill="none">
+  <rect width="500" height="350" rx="20" fill="#f8fafc"/>
+  <!-- Step 1: Drop-off -->
+  <g transform="translate(50, 60)">
+    <rect x="-35" y="-25" width="70" height="50" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect x="-18" y="-12" width="36" height="28" rx="3" fill="#3b82f6"/>
+    <rect x="-12" y="-8" width="24" height="6" rx="1" fill="#93c5fd"/>
+    <rect x="-12" y="0" width="24" height="4" rx="1" fill="#93c5fd"/>
+    <rect x="-12" y="6" width="14" height="4" rx="1" fill="#93c5fd"/>
+    <circle cx="0" cy="35" r="10" fill="#3b82f6"/>
+    <text x="0" y="38" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">1</text>
+  </g>
+  <!-- Arrow 1→2 -->
+  <path d="M95 85 L120 85" stroke="#93c5fd" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <g transform="translate(120, 70)">
+    <text x="15" y="10" fill="#64748b" font-size="8" font-family="sans-serif">Dépôt</text>
+  </g>
+  <!-- Step 2: Traveler picks up -->
+  <g transform="translate(210, 60)">
+    <rect x="-35" y="-25" width="70" height="50" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+    <circle cx="0" cy="-10" r="10" fill="#f59e0b"/>
+    <circle cx="0" cy="-10" r="6" fill="#fbbf24"/>
+    <path d="M-12 8 Q0 18 12 8" stroke="#f59e0b" stroke-width="2" fill="none"/>
+    <rect x="-12" y="8" width="24" height="14" rx="3" fill="#f59e0b"/>
+    <rect x="-8" y="11" width="16" height="3" rx="1" fill="#fde68a"/>
+    <rect x="-8" y="16" width="10" height="3" rx="1" fill="#fde68a"/>
+    <circle cx="0" cy="35" r="10" fill="#f59e0b"/>
+    <text x="0" y="38" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">2</text>
+    <text x="0" y="55" text-anchor="middle" fill="#64748b" font-size="8" font-family="sans-serif">Voyage</text>
+  </g>
+  <!-- Arrow 2→3 -->
+  <path d="M245 85 L275 85" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowAmber)"/>
+  <!-- Step 3: Delivery -->
+  <g transform="translate(380, 60)">
+    <rect x="-35" y="-25" width="70" height="50" rx="10" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="-18" y="-12" width="36" height="28" rx="3" fill="#22c55e"/>
+    <rect x="-12" y="-8" width="24" height="6" rx="1" fill="#86efac"/>
+    <rect x="-12" y="0" width="24" height="4" rx="1" fill="#86efac"/>
+    <rect x="-12" y="6" width="14" height="4" rx="1" fill="#86efac"/>
+    <path d="M-6 4 L0 10 L8 -2" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <circle cx="0" cy="35" r="10" fill="#22c55e"/>
+    <text x="0" y="38" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">3</text>
+    <text x="0" y="55" text-anchor="middle" fill="#64748b" font-size="8" font-family="sans-serif">Livraison</text>
+  </g>
+  <!-- Bottom row: Map visualization -->
+  <g transform="translate(0, 160)">
+    <rect x="30" y="0" width="440" height="160" rx="12" fill="#e0f2fe" stroke="#bae6fd" stroke-width="1"/>
+    <!-- France -->
+    <path d="M100 50 L130 30 L150 35 L170 20 L185 25 L185 40 L195 50 L190 70 L180 80 L160 85 L140 80 L120 85 L105 75Z" fill="#3b82f6" opacity="0.15"/>
+    <text x="140" y="110" text-anchor="middle" fill="#2563eb" font-size="9" font-family="sans-serif" font-weight="bold">FRANCE</text>
+    <!-- Martinique -->
+    <ellipse cx="370" cy="95" rx="30" ry="15" fill="#3b82f6" opacity="0.15"/>
+    <text x="370" y="120" text-anchor="middle" fill="#2563eb" font-size="9" font-family="sans-serif" font-weight="bold">MARTINIQUE</text>
+    <!-- Route -->
+    <path d="M160 60 Q250 20 370 85" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 4" fill="none"/>
+    <!-- Package on route -->
+    <g transform="translate(250, 45)">
+      <rect x="-6" y="-4" width="12" height="10" rx="2" fill="#f59e0b"/>
+      <line x1="-3" y1="-4" x2="-3" y2="6" stroke="#fde68a" stroke-width="0.8"/>
+      <line x1="0" y1="-4" x2="0" y2="6" stroke="#fde68a" stroke-width="0.8"/>
+      <line x1="3" y1="-4" x2="3" y2="6" stroke="#fde68a" stroke-width="0.8"/>
+    </g>
+    <!-- Plane icon -->
+    <g transform="translate(310, 33) rotate(-10)">
+      <path d="M-12 0 L12 0 L15 -5 L12 -5 L8 0 L-8 0 L-12 -5 L-15 -5Z" fill="#3b82f6" opacity="0.7"/>
+    </g>
+    <!-- Map dots -->
+    <circle cx="130" cy="50" r="3" fill="#3b82f6"/>
+    <circle cx="370" cy="95" r="3" fill="#22c55e"/>
+  </g>
+  <defs>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#93c5fd"/>
+    </marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#f59e0b"/>
+    </marker>
+  </defs>
+</svg>

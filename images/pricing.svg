@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 350" fill="none">
+  <rect width="500" height="350" rx="20" fill="#f0fdf4"/>
+  <!-- Title area -->
+  <text x="250" y="30" text-anchor="middle" fill="#166534" font-size="14" font-weight="bold" font-family="sans-serif">Comparaison des prix</text>
+  <!-- Bar chart -->
+  <g transform="translate(60, 50)">
+    <!-- Y axis -->
+    <line x1="30" y1="0" x2="30" y2="200" stroke="#86efac" stroke-width="2"/>
+    <!-- X axis -->
+    <line x1="30" y1="200" x2="400" y2="200" stroke="#86efac" stroke-width="2"/>
+    <!-- Y labels -->
+    <text x="25" y="200" text-anchor="end" fill="#64748b" font-size="9" font-family="sans-serif">0€</text>
+    <text x="25" y="150" text-anchor="end" fill="#64748b" font-size="9" font-family="sans-serif">20€</text>
+    <text x="25" y="100" text-anchor="end" fill="#64748b" font-size="9" font-family="sans-serif">40€</text>
+    <text x="25" y="50" text-anchor="end" fill="#64748b" font-size="9" font-family="sans-serif">60€</text>
+    <text x="25" y="0" text-anchor="end" fill="#64748b" font-size="9" font-family="sans-serif">80€</text>
+    <!-- Grid lines -->
+    <line x1="30" y1="150" x2="400" y2="150" stroke="#dcfce7" stroke-width="1"/>
+    <line x1="30" y1="100" x2="400" y2="100" stroke="#dcfce7" stroke-width="1"/>
+    <line x1="30" y1="50" x2="400" y2="50" stroke="#dcfce7" stroke-width="1"/>
+    <!-- Bar 1: 1kg Kaygo -->
+    <rect x="60" y="172" width="40" height="28" rx="4" fill="#22c55e"/>
+    <text x="80" y="165" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="bold" font-family="sans-serif">23€</text>
+    <text x="80" y="210" text-anchor="middle" fill="#64748b" font-size="8" font-family="sans-serif">1 kg</text>
+    <!-- Bar 2: 1kg Traditional -->
+    <rect x="120" y="148" width="40" height="52" rx="4" fill="#94a3b8"/>
+    <text x="140" y="141" text-anchor="middle" fill="#64748b" font-size="9" font-weight="bold" font-family="sans-serif">52€</text>
+    <!-- Bar 3: 5kg Kaygo -->
+    <rect x="220" y="138" width="40" height="62" rx="4" fill="#22c55e"/>
+    <text x="240" y="131" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="bold" font-family="sans-serif">55€</text>
+    <text x="240" y="210" text-anchor="middle" fill="#64748b" font-size="8" font-family="sans-serif">5 kg</text>
+    <!-- Bar 4: 5kg Traditional -->
+    <rect x="280" y="80" width="40" height="120" rx="4" fill="#94a3b8"/>
+    <text x="300" y="73" text-anchor="middle" fill="#64748b" font-size="9" font-weight="bold" font-family="sans-serif">125€</text>
+    <!-- Bar 5: 10kg Kaygo -->
+    <rect x="340" y="86" width="40" height="114" rx="4" fill="#22c55e"/>
+    <text x="360" y="79" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="bold" font-family="sans-serif">95€</text>
+    <text x="360" y="210" text-anchor="middle" fill="#64748b" font-size="8" font-family="sans-serif">10 kg</text>
+    <!-- Arrow savings -->
+    <g transform="translate(180, 120)">
+      <path d="M-30 0 Q0 -15 30 0" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arrowAmber2)"/>
+      <text x="0" y="-8" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold" font-family="sans-serif">-60%</text>
+    </g>
+  </g>
+  <!-- Legend -->
+  <g transform="translate(60, 290)">
+    <rect x="0" y="0" width="12" height="12" rx="2" fill="#22c55e"/>
+    <text x="18" y="9" fill="#64748b" font-size="10" font-family="sans-serif">Kaygo</text>
+    <rect x="100" y="0" width="12" height="12" rx="2" fill="#94a3b8"/>
+    <text x="118" y="9" fill="#64748b" font-size="10" font-family="sans-serif">Transporteur classique</text>
+  </g>
+  <defs>
+    <marker id="arrowAmber2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10Z" fill="#f59e0b"/>
+    </marker>
+  </defs>
+</svg>

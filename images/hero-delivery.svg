@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" fill="none">
+  <!-- Sky background -->
+  <rect width="500" height="400" rx="20" fill="url(#skyGrad)"/>
+  <!-- Sea -->
+  <path d="M0 280 Q80 270 160 280 Q240 290 320 280 Q400 270 480 280 L500 280 L500 400 L0 400Z" fill="#1e6b9e" opacity="0.6"/>
+  <path d="M0 300 Q100 290 200 300 Q300 310 400 300 L500 305 L500 400 L0 400Z" fill="#15527a" opacity="0.5"/>
+  <!-- France outline (simplified) -->
+  <path d="M60 180 L90 160 L110 165 L130 150 L145 155 L145 170 L155 180 L150 200 L140 210 L120 215 L100 210 L80 215 L65 205Z" fill="#fff" opacity="0.9"/>
+  <rect x="75" y="162" width="8" height="6" rx="1" fill="#e74c3c"/>
+  <!-- Martinique outline (simplified) -->
+  <ellipse cx="340" cy="260" rx="30" ry="15" fill="#fff" opacity="0.9"/>
+  <rect x="330" y="253" width="6" height="5" rx="1" fill="#e74c3c"/>
+  <!-- Flight path arc -->
+  <path d="M120 190 Q200 120 320 250" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="8 6" fill="none" opacity="0.8"/>
+  <!-- Airplane -->
+  <g transform="translate(195, 155) rotate(-25)">
+    <path d="M-15 0 L10 0 L15 -8 L12 -8 L10 -3 L-8 -3 L-12 -8 L-15 -8Z" fill="#fbbf24" opacity="0.95"/>
+    <path d="M-3 0 L-3 5 L-6 8 L-3 8 L0 5 L2 0" fill="#fbbf24" opacity="0.7"/>
+    <circle cx="10" cy="0" r="2" fill="#fff"/>
+  </g>
+  <!-- Parachute package -->
+  <g transform="translate(280, 235)">
+    <rect x="-8" y="-5" width="16" height="12" rx="2" fill="#3b82f6" stroke="#2563eb" stroke-width="1"/>
+    <line x1="-4" y1="-5" x2="-4" y2="-3" stroke="#fff" stroke-width="0.8"/>
+    <line x1="0" y1="-5" x2="0" y2="-3" stroke="#fff" stroke-width="0.8"/>
+    <line x1="4" y1="-5" x2="4" y2="-3" stroke="#fff" stroke-width="0.8"/>
+    <path d="M0 -5 Q-15 -35 -6 -25" stroke="#2563eb" stroke-width="1" fill="none"/>
+    <path d="M0 -5 Q15 -35 6 -25" stroke="#2563eb" stroke-width="1" fill="none"/>
+    <path d="M-6 -25 Q-10 -28 -8 -25" stroke="#e74c3c" stroke-width="1.5" fill="none" opacity="0.7"/>
+    <path d="M6 -25 Q10 -28 8 -25" stroke="#e74c3c" stroke-width="1.5" fill="none" opacity="0.7"/>
+  </g>
+  <!-- Sun -->
+  <circle cx="430" cy="60" r="30" fill="#fbbf24" opacity="0.3"/>
+  <circle cx="430" cy="60" r="22" fill="#fbbf24" opacity="0.6"/>
+  <circle cx="430" cy="60" r="15" fill="#fbbf24"/>
+  <!-- Clouds -->
+  <g opacity="0.4">
+    <ellipse cx="80" cy="70" rx="35" ry="12" fill="#fff"/>
+    <ellipse cx="100" cy="65" rx="25" ry="10" fill="#fff"/>
+    <ellipse cx="60" cy="68" rx="20" ry="8" fill="#fff"/>
+  </g>
+  <g opacity="0.3">
+    <ellipse cx="350" cy="120" rx="30" ry="10" fill="#fff"/>
+    <ellipse cx="370" cy="115" rx="22" ry="8" fill="#fff"/>
+  </g>
+  <!-- Ship on water -->
+  <g transform="translate(140, 310)">
+    <path d="M-20 -8 L20 -8 L15 2 L-15 2Z" fill="#64748b"/>
+    <rect x="-3" y="-18" width="6" height="12" rx="1" fill="#94a3b8"/>
+    <polygon points="3,-16 14,-10 3,-6" fill="#94a3b8" opacity="0.7"/>
+    <rect x="-22" y="-6" width="44" height="8" rx="1" fill="#475569"/>
+    <rect x="-8" y="-8" width="4" height="4" rx="1" fill="#e74c3c"/>
+    <path d="M-25 2 Q0 6 25 2" stroke="#1e6b9e" stroke-width="1.5" fill="none" opacity="0.5"/>
+  </g>
+  <!-- Definitions -->
+  <defs>
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="60%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#93c5fd"/>
+    </linearGradient>
+  </defs>
+</svg>
